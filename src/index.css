@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+/* ── CSS Variables ── */
+:root {
+  /* Dark theme (default) */
+  --bg-base:       #020f1e;
+  --bg-surface:    #071929;
+  --bg-card:       #0b2035;
+  --bg-hover:      #0e2a45;
+  --border:        #1a3a5c;
+  --border-accent: #2558a0;
+  --text-primary:  #e8f4ff;
+  --text-muted:    #7aafe0;
+  --text-faint:    #4a7fa8;
+  --text-ghost:    #2a4d6a;
+  --accent:        #5badff;
+  --accent-hover:  #7ac0ff;
+  --shadow:        rgba(0,0,0,0.5);
+}
+ 
+.light {
+  --bg-base:       #f0f5ff;
+  --bg-surface:    #ffffff;
+  --bg-card:       #f8faff;
+  --bg-hover:      #e8f0fc;
+  --border:        #c5d8f0;
+  --border-accent: #4a8dd4;
+  --text-primary:  #0d1f36;
+  --text-muted:    #2a567a;
+  --text-faint:    #4a7fa8;
+  --text-ghost:    #a0c0d8;
+  --accent:        #1a6fc4;
+  --accent-hover:  #2580d8;
+  --shadow:        rgba(59,130,246,0.10);
+}
+ 
+/* ── Base ── */
+* { box-sizing: border-box; }
+ 
+html, body, #root {
+  height: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+ 
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 8px; }
+ 
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.6; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+ 
+.anim-fade-up  { animation: fadeUp  0.55s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-fade-in  { animation: fadeIn  0.4s ease both; }
+.anim-delay-1  { animation-delay: 0.08s; }
+.anim-delay-2  { animation-delay: 0.16s; }
+.anim-delay-3  { animation-delay: 0.24s; }
+.anim-delay-4  { animation-delay: 0.32s; }
+ 
+/* ── Theme-aware utilities ── */
+.surface   { background-color: var(--bg-surface); }
+.card      { background-color: var(--bg-card); }
+.t-primary { color: var(--text-primary); }
+.t-muted   { color: var(--text-muted); }
+.t-faint   { color: var(--text-faint); }
+.t-accent  { color: var(--accent); }
+.border-th { border-color: var(--border); }
+.border-th-accent { border-color: var(--border-accent); }
