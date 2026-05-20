@@ -207,13 +207,13 @@ export default function GestionUsuarios({ onVolver }) {
       display: "flex", 
       flexDirection: "column", 
       width: "100%", 
-      minHeight: "100%", 
-      boxSizing: "border-box",
-      paddingBottom: "30px" 
+      height: "100%", 
+      minHeight: 0,
+      boxSizing: "border-box"
     }}>
       
       {/* ── CABECERA GENERAL ── */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22, flexShrink:0, flexWrap:"wrap", gap:12 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexShrink:0, flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:28, fontWeight:900, color:C.textPrimary, margin:"0 0 4px" }}>
             Gestión de Usuarios
@@ -304,17 +304,17 @@ export default function GestionUsuarios({ onVolver }) {
         </div>
       ) : (
         
-        /* [VISTA B]: CREAR NUEVO USUARIO TOTALMENTE RESPONSIVO */
-        <div className="responsive-user-layout" style={{ flex:1, display:"grid", gridTemplateColumns:"1fr 320px", gap:16, height:"auto", alignItems:"start" }}>
+        /* [VISTA B]: CREAR NUEVO USUARIO TOTALMENTE RESPONSIVO CON SCROLL INTERNO */
+        <div className="responsive-user-layout" style={{ flex:1, display:"grid", gridTemplateColumns:"1fr 340px", gap:16, overflowY:"auto", paddingRight:4 }}>
           
           {/* Panel del Formulario */}
-          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px", display:"flex", flexDirection:"column" }}>
+          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px", display:"flex", flexDirection:"column", boxSizing:"border-box" }}>
             <h3 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:16, fontWeight:700, color:C.textPrimary, margin:"0 0 16px" }}>Nuevo usuario</h3>
 
             {exito && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>✓ {exito}</div>}
             {errGlobal && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", color:"#ef4444", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>⚠️ {errGlobal}</div>}
 
-            <div style={{ display:"flex", flexDirection:"column", gap:14, flex:1 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div>
                 <label style={{ display:"block", fontSize:12, fontWeight:600, color:C.textSec, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Nombre de usuario</label>
                 <input type="text" placeholder="ej: juan.perez" value={form.username}
@@ -409,7 +409,7 @@ export default function GestionUsuarios({ onVolver }) {
           </div>
 
           {/* Panel de Vista Previa Lateral */}
-          <div className="responsive-preview-panel" style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div className="responsive-preview-panel" style={{ display:"flex", flexDirection:"column", gap:12, boxSizing:"border-box" }}>
             <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px" }}>
               <p style={{ fontSize:10, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px", fontFamily:"'DM Sans',sans-serif" }}>Vista previa</p>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, marginBottom:16 }}>
@@ -471,13 +471,14 @@ export default function GestionUsuarios({ onVolver }) {
         ::placeholder { color:rgba(255,255,255,0.18)!important; } 
         select option { background:#111; color:#f0f4f8; }
         
-        /* Forzar cambio a una columna si la pantalla es estrecha o tiene poca altura (Laptops) */
-        @media (max-width: 1024px), (max-height: 840px) {
+        /* Cambiar a una columna si la pantalla es menor a 1200px de ancho debido al menú lateral pesado */
+        @media (max-width: 1200px) {
           .responsive-user-layout {
             grid-template-columns: 1fr !important;
           }
           .responsive-preview-panel {
-            margin-top: 14px;
+            margin-top: 8px;
+            padding-bottom: 24px;
           }
         }
 
