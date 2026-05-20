@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import GestionInventario from "./InventarioPage";
+import InventarioPage from "./InventarioPage";
 import GestionUsuarios from "./GestionUsuariosPage";
 
-// ─── Paleta fija negra/naranja ────────────────────────────────────────────────
 const C = {
-  sidebarBg:     "#0d0d0d",
+  sidebarBg:    "#0d0d0d",
   sidebarBorder:"rgba(255,255,255,0.06)",
-  headerBg:      "#0d0d0d",
+  headerBg:     "#0d0d0d",
   headerBorder: "rgba(255,255,255,0.06)",
   mainBg:       "#0d0d0d",
   cardBg:       "#111111",
@@ -18,14 +17,11 @@ const C = {
   textPrimary:  "#f0f4f8",
   textSec:      "#8a9bb0",
   textGhost:    "#4e6070",
-  inputBg:      "#0a0a0a",
-  inputBorder:  "rgba(255,255,255,0.1)",
   danger:       "#ef4444",
   success:      "#10b981",
   warning:      "#f59e0b",
 };
 
-// ─── Íconos ───────────────────────────────────────────────────────────────────
 const IC = {
   Home:     ()=><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   Box:      ()=><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
@@ -40,10 +36,8 @@ const IC = {
   Logout:   ()=><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
   User:     ()=><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   Chevron:  ()=><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>,
-  Back:     ()=><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>,
 };
 
-// ─── Logo Inter Rapidísimo ────────────────────────────────────────────────────
 function Logo({ collapsed }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:collapsed?0:10, overflow:"hidden" }}>
@@ -60,7 +54,6 @@ function Logo({ collapsed }) {
   );
 }
 
-// ─── Modal cantidad ───────────────────────────────────────────────────────────
 function ModalCantidad({ tipo, onConfirm, onClose }) {
   const [cantidad, setCantidad] = useState(1);
   return (
@@ -75,8 +68,7 @@ function ModalCantidad({ tipo, onConfirm, onClose }) {
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:20 }}>
           <button onClick={()=>setCantidad(v=>Math.max(1,v-1))} style={{ width:38,height:38,borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"#0a0a0a",color:C.textPrimary,fontSize:18,cursor:"pointer" }}>−</button>
-          <input type="number" min="1" max="50" value={cantidad}
-            onChange={e=>setCantidad(Math.max(1,parseInt(e.target.value)||1))}
+          <input type="number" min="1" max="50" value={cantidad} onChange={e=>setCantidad(Math.max(1,parseInt(e.target.value)||1))}
             style={{ flex:1,padding:"10px",borderRadius:8,border:"1.5px solid rgba(255,255,255,0.09)",background:"#0a0a0a",color:"#FF6B00",fontSize:24,fontWeight:900,textAlign:"center",outline:"none",fontFamily:"'Barlow Condensed',sans-serif",boxSizing:"border-box" }}
             onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
           <button onClick={()=>setCantidad(v=>Math.min(50,v+1))} style={{ width:38,height:38,borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"#0a0a0a",color:C.textPrimary,fontSize:18,cursor:"pointer" }}>+</button>
@@ -92,7 +84,6 @@ function ModalCantidad({ tipo, onConfirm, onClose }) {
   );
 }
 
-// ─── Formulario registros ─────────────────────────────────────────────────────
 function FormularioRegistros({ tipo, cantidad, onVolver }) {
   const filas = Array.from({length:cantidad},()=>({guia:"",precio:"",metodo:"EFECTIVO"}));
   const [datos, setDatos] = useState(filas);
@@ -111,8 +102,7 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
           onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>
       </div>
       <form onSubmit={handleSubmit}>
-        {/* Cambiado a CSS adaptable dinámico por la clase de estilos responsiva integrada */}
-        <div className="responsive-grid" style={{ marginBottom:24 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:14, marginBottom:24 }}>
           {datos.map((item,i)=>(
             <div key={i} style={{ background:"#111111",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"1.25rem",boxSizing:"border-box" }}>
               <div style={{ fontSize:11,fontWeight:700,color:"#FF6B00",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.1em",paddingBottom:10,borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:8 }}>
@@ -125,7 +115,6 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
                   <input required type="text" placeholder="Ej: GUIA-00123" value={item.guia} onChange={e=>set(i,"guia",e.target.value)} style={inputS}
                     onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
                 </div>
-                {/* Cambiado de grid rígido a flex configurable para que baje en pantallas muy angostas */}
                 <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                   <div style={{ flex:"1 1 130px" }}>
                     <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>Precio ($)</label>
@@ -146,7 +135,7 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
           ))}
         </div>
         <div style={{ display:"flex",justifyContent:"flex-end" }}>
-          <button type="submit" style={{ width:"100%", maxWidth:320, padding:"12px 32px",borderRadius:8,border:"none",background:guardado?C.success:"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all 0.2s" }}
+          <button type="submit" style={{ padding:"12px 32px",borderRadius:8,border:"none",background:guardado?C.success:"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all 0.2s" }}
             onMouseEnter={e=>{ if(!guardado) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>{ if(!guardado) e.currentTarget.style.background="#FF6B00"; }}>
             {guardado?"✓ ¡Guardado!":`Guardar ${cantidad} ${cantidad===1?"registro":"registros"}`}
           </button>
@@ -156,7 +145,6 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
   );
 }
 
-// ─── Placeholder módulos ──────────────────────────────────────────────────────
 function ModuloPlaceholder({ titulo, emoji, descripcion, color, onVolver }) {
   return (
     <div style={{ maxWidth:500,margin:"0 auto",textAlign:"center",padding:"2rem 1rem" }}>
@@ -173,31 +161,59 @@ function ModuloPlaceholder({ titulo, emoji, descripcion, color, onVolver }) {
   );
 }
 
-// ─── DASHBOARD PRINCIPAL ──────────────────────────────────────────────────────
+function OpCard({ Icon, title, desc, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none", width:"100%" }}>
+      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
+        <Icon/>
+      </div>
+      <div style={{ flex:1 }}>
+        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, color:"#f0f4f8", margin:"0 0 3px", textTransform:"uppercase" }}>{title}</h4>
+        <p style={{ fontSize:13, color:"#8a9bb0", margin:0, lineHeight:1.3 }}>{desc}</p>
+      </div>
+      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700 }}>→</div>
+    </button>
+  );
+}
+
+function AdminCard({ titulo, Icon, desc, color, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"space-between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
+          <Icon/>
+        </div>
+        <span style={{ fontSize:12, color:C.textGhost, fontWeight:600 }}>Módulo</span>
+      </div>
+      <div>
+        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.02em" }}>{titulo}</h4>
+        <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── DASHBOARD PRINCIPAL ───────────────────────────────────────────────────────
 export default function DashboardPage({ onLogout }) {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeNav,   setActiveNav]   = useState("inicio");
-  const [vista,       setVista]       = useState("inicio");
-  const [modal,       setModal]       = useState(null);
-  const [cantidad,    setCant]        = useState(1);
-  const [showUserMenu,setShowUserMenu]= useState(false);
+  const [sidebarOpen,  setSidebarOpen]  = useState(true);
+  const [activeNav,    setActiveNav]    = useState("inicio");
+  const [vista,        setVista]        = useState("inicio");
+  const [modal,        setModal]        = useState(null);
+  const [cantidad,     setCant]         = useState(1);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isMobile,     setIsMobile]     = useState(false);
   const menuRef = useRef(null);
 
-  // 🔌 DETECTOR DINÁMICO DE MÓVILES (Evita romper la UI en pantallas chicas)
-  const [isMobile, setIsMobile] = useState(false);
-
   useEffect(() => {
-    const checkSize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
-      // En celular arranca cerrado, en PC abierto
-      setSidebarOpen(!mobile);
-    };
-    
-    checkSize();
-    window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
+    const check = () => { const m = window.innerWidth <= 768; setIsMobile(m); setSidebarOpen(!m); };
+    check();
+    window.addEventListener("resize", check);
+    return ()=>window.removeEventListener("resize", check);
   }, []);
 
   useEffect(() => {
@@ -228,53 +244,44 @@ export default function DashboardPage({ onLogout }) {
   ];
 
   const MODULOS_META = {
-    inventario:{ titulo:"Inventario",  emoji:"🗄️", descripcion:"Gestiona el stock de cajas, sobres y materiales de empaque.",     color:C.success },
-    informes:  { titulo:"Informes",    emoji:"📊", descripcion:"Visualiza reportes detallados de entregas, envíos e ingresos.",     color:C.warning },
-    gastos:    { titulo:"Gastos",      emoji:"💰", descripcion:"Registra gastos de operación, nómina, insumos y otros egresos.",    color:C.danger  },
-    configuracion:{ titulo:"Configuración", emoji:"⚙️", descripcion:"Personaliza la configuración del sistema.", color:C.textSec },
+    informes:     { titulo:"Informes",      emoji:"📊", descripcion:"Visualiza reportes detallados de entregas, envíos e ingresos.",    color:C.warning },
+    gastos:       { titulo:"Gastos",        emoji:"💰", descripcion:"Registra gastos de operación, nómina, insumos y otros egresos.",    color:C.danger  },
+    configuracion:{ titulo:"Configuración", emoji:"⚙️", descripcion:"Personaliza la configuración del sistema.",                        color:C.textSec },
   };
 
   const handleNav = key => {
     setActiveNav(key);
-    if(isMobile) setSidebarOpen(false); // Autocerrar el menú al cambiar de sección en celulares
-    if(key==="inicio")                 { setVista("inicio"); return; }
-    if(key==="entregas"||key==="envios") { setModal(key); return; }
-    if(key==="usuarios")              { setVista("usuarios"); return; }
-    if(MODULOS_META[key])             { setVista(key); return; }
+    if(isMobile) setSidebarOpen(false);
+    if(key==="inicio")                   { setVista("inicio");      return; }
+    if(key==="entregas"||key==="envios") { setModal(key);           return; }
+    if(key==="usuarios")                 { setVista("usuarios");    return; }
+    if(key==="inventario")               { setVista("inventario");  return; }
+    if(MODULOS_META[key])                { setVista(key);           return; }
   };
 
-  const confirmar = cant => {
-    setCant(cant);
-    setVista(modal==="entregas"?"form-entregas":"form-envios");
-    setModal(null);
-  };
-
-  const volver = () => { setVista("inicio"); setActiveNav("inicio"); };
+  const confirmar = cant => { setCant(cant); setVista(modal==="entregas"?"form-entregas":"form-envios"); setModal(null); };
+  const volver    = () => { setVista("inicio"); setActiveNav("inicio"); };
 
   const paginaTitulo = navItems.find(n=>n.key===activeNav)?.label || "Inicio";
-  const paginaSub    = activeNav==="inicio" ? "Resumen general de operaciones"
-                     : activeNav==="entregas" ? "Gestión de entregas"
-                     : activeNav==="envios"   ? "Registro de envíos"
-                     : "Módulo del sistema";
+  const paginaSub    = activeNav==="inicio"?"Resumen general de operaciones": activeNav==="entregas"?"Gestión de entregas": activeNav==="envios"?"Registro de envíos":"Módulo del sistema";
 
   const renderVista = () => {
-    if(vista==="form-entregas") return <FormularioRegistros tipo="entregas" cantidad={cantidad} onVolver={volver}/>;
-    if(vista==="form-envios")   return <FormularioRegistros tipo="envios"   cantidad={cantidad} onVolver={volver}/>;
-    if(vista==="usuarios")      return <GestionUsuarios onVolver={volver}/>;
-    if(vista==="inventario")    return <GestionInventario onVolver={volver}/>;
-    if(MODULOS_META[vista])     return <ModuloPlaceholder {...MODULOS_META[vista]} onVolver={volver}/>;
+    if(vista==="form-entregas") return <FormularioRegistros tipo="entregas"  cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="form-envios")   return <FormularioRegistros tipo="envios"    cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="usuarios")      return <GestionUsuarios    onVolver={volver}/>;
+    if(vista==="inventario")    return <InventarioPage     onVolver={volver}/>;
+    if(MODULOS_META[vista])     return <ModuloPlaceholder  {...MODULOS_META[vista]} onVolver={volver}/>;
 
-    // ── INICIO ──────────────────────────────────────────────────────────────
     return (
       <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, gap:14 }}>
 
         {/* Banner */}
         <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:isMobile?"16px":"20px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0, position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"#FF6B00", borderRadius:"12px 0 0 12px" }}/>
-          <div style={{ paddingLeft: isMobile ? 8 : 16 }}>
+          <div style={{ paddingLeft:isMobile?8:16 }}>
             <p style={{ fontSize:11, color:C.textSec, margin:"0 0 2px" }}>{new Date().toLocaleDateString("es-CO",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</p>
-            <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 22 : 26, fontWeight:900, color:C.textPrimary, margin:"0 0 4px", textTransform:"uppercase" }}>¡Bienvenido, {nombre}! 👋</h2>
-            <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>Gestiona tus operaciones de forma rápida y eficiente.</p>
+            <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:isMobile?22:26, fontWeight:900, color:C.textPrimary, margin:"0 0 4px", textTransform:"uppercase" }}>¡Bienvenido, {nombre}! 👋</h2>
+            <p style={{ fontSize:12, color:C.textSec, margin:0 }}>Gestiona tus operaciones de forma rápida y eficiente.</p>
           </div>
           {!isMobile && (
             <div style={{ opacity:0.08, flexShrink:0 }}>
@@ -286,27 +293,25 @@ export default function DashboardPage({ onLogout }) {
         {/* Operaciones */}
         <div style={{ flexShrink:0 }}>
           <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 10px" }}>¿Qué operación deseas realizar hoy?</p>
-          {/* Grilla flexible en lugar de columnas rígidas */}
-          <div className="responsive-grid-ops" style={{ display:"grid", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:12 }}>
             {[
               { key:"entregas", Icon:IC.Box,   title:"Entregas", desc:"Registra guías y completa entregas de paquetes." },
               { key:"envios",   Icon:IC.Truck, title:"Envíos",   desc:"Registra nuevos paquetes para enviar." },
-            ].map(op => <OpCard key={op.key} {...op} onClick={()=>{ setModal(op.key); setActiveNav(op.key); }}/>)}
+            ].map(op=><OpCard key={op.key} {...op} onClick={()=>{ setModal(op.key); setActiveNav(op.key); }}/>)}
           </div>
         </div>
 
-        {/* Administración */}
+        {/* Admin */}
         {isAdmin && (
           <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0 }}>
             <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"10px 0 10px", flexShrink:0 }}>Administración</p>
-            {/* Grilla auto-adaptable: Si no cabe en celular, hace salto de línea automáticamente */}
-            <div className="responsive-grid" style={{ display:"grid", gap:12, flex:1, minHeight:0 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12, flex:1, minHeight:0 }}>
               {[
-                { key:"inventario", titulo:"Inventario",       Icon:IC.List,    desc:"Stock de paquetes y recursos.",              color:"#6366f1" },
-                { key:"informes",   titulo:"Informes",          Icon:IC.Chart,   desc:"Reportes y métricas del negocio.",            color:"#ec4899" },
-                { key:"gastos",     titulo:"Registrar gastos",  Icon:IC.Receipt, desc:"Control de gastos operacionales.",            color:"#f59e0b" },
-                { key:"usuarios",   titulo:"Crear usuarios",    Icon:IC.Users,   desc:"Gestión de accesos y roles del equipo.",      color:"#10b981" },
-              ].map(m => <AdminCard key={m.key} {...m} onClick={()=>handleNav(m.key)}/>)}
+                { key:"inventario", titulo:"Inventario",      Icon:IC.List,    desc:"Stock de paquetes y recursos.",         color:"#6366f1" },
+                { key:"informes",   titulo:"Informes",         Icon:IC.Chart,   desc:"Reportes y métricas del negocio.",       color:"#ec4899" },
+                { key:"gastos",     titulo:"Registrar gastos", Icon:IC.Receipt, desc:"Control de gastos operacionales.",       color:"#f59e0b" },
+                { key:"usuarios",   titulo:"Crear usuarios",   Icon:IC.Users,   desc:"Gestión de accesos y roles del equipo.", color:"#10b981" },
+              ].map(m=><AdminCard key={m.key} {...m} onClick={()=>handleNav(m.key)}/>)}
             </div>
           </div>
         )}
@@ -317,30 +322,12 @@ export default function DashboardPage({ onLogout }) {
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:C.mainBg, fontFamily:"'DM Sans','Helvetica Neue',Arial,sans-serif", position:"relative" }}>
 
-      {/* ── SIDEBAR ADAPTABLE ── */}
-      <aside style={{ 
-        width: sidebarOpen ? 216 : (isMobile ? 0 : 64), 
-        flexShrink:0, 
-        background:C.sidebarBg, 
-        borderRight:`1px solid ${C.sidebarBorder}`, 
-        display:"flex", 
-        flexDirection:"column", 
-        transition:"all 0.25s", 
-        overflow:"hidden", 
-        position:"fixed", 
-        top:0, 
-        left:0, 
-        bottom:0, 
-        zIndex:150 // Por encima de todo en móvil
-      }}>
-
+      {/* Sidebar */}
+      <aside style={{ width:sidebarOpen?216:(isMobile?0:64), flexShrink:0, background:C.sidebarBg, borderRight:`1px solid ${C.sidebarBorder}`, display:"flex", flexDirection:"column", transition:"all 0.25s", overflow:"hidden", position:"fixed", top:0, left:0, bottom:0, zIndex:150 }}>
         <div style={{ height:64, padding:"0 14px", display:"flex", alignItems:"center", borderBottom:`1px solid ${C.sidebarBorder}`, flexShrink:0, justifyContent:"space-between" }}>
-          <Logo collapsed={isMobile ? false : !sidebarOpen}/>
-          {isMobile && (
-            <button onClick={() => setSidebarOpen(false)} style={{ background:"none", border:"none", color:C.textSec, fontSize:18, cursor:"pointer" }}>✕</button>
-          )}
+          <Logo collapsed={isMobile?false:!sidebarOpen}/>
+          {isMobile && <button onClick={()=>setSidebarOpen(false)} style={{ background:"none", border:"none", color:C.textSec, fontSize:18, cursor:"pointer" }}>✕</button>}
         </div>
-
         <nav style={{ flex:1, padding:"10px 8px", overflowY:"auto", overflowX:"hidden" }}>
           {navItems.map(({key,label,Icon})=>{
             const active = activeNav===key;
@@ -350,37 +337,24 @@ export default function DashboardPage({ onLogout }) {
                 onMouseEnter={e=>{ if(!active){ e.currentTarget.style.background="rgba(255,255,255,0.06)"; e.currentTarget.style.color="rgba(255,255,255,0.8)"; }}}
                 onMouseLeave={e=>{ if(!active){ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=C.navText; }}}>
                 <span style={{ flexShrink:0 }}><Icon/></span>
-                {(sidebarOpen || isMobile) && <span>{label}</span>}
+                {(sidebarOpen||isMobile) && <span>{label}</span>}
               </button>
             );
           })}
         </nav>
-
         <div style={{ padding:"10px 8px", borderTop:`1px solid ${C.sidebarBorder}`, flexShrink:0 }}>
           <button style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", cursor:"pointer", background:"transparent", color:C.navText, fontFamily:"'DM Sans',sans-serif", fontSize:14, whiteSpace:"nowrap" }}
-            onMouseEnter={e=>{ e.currentTarget.style.background="rgba(255,255,255,0.06)"; }}
-            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; }}>
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
             <span style={{ flexShrink:0 }}><IC.Help/></span>
-            {(sidebarOpen || isMobile) && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
+            {(sidebarOpen||isMobile) && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
           </button>
         </div>
       </aside>
 
-      {/* 🪵 CAPA DE FONDO OSCURA: Cierra el menú al tocar fuera en celulares */}
-      {isMobile && sidebarOpen && (
-        <div onClick={() => setSidebarOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:140 }} />
-      )}
+      {isMobile && sidebarOpen && <div onClick={()=>setSidebarOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:140 }}/>}
 
-      {/* ── ÁREA PRINCIPAL DINÁMICA ── */}
-      <div style={{ 
-        flex:1, 
-        marginLeft: isMobile ? 0 : (sidebarOpen ? 216 : 64), 
-        transition:"margin-left 0.25s", 
-        display:"flex", 
-        flexDirection:"column", 
-        height:"100vh", 
-        overflow:"hidden" 
-      }}>
+      {/* Área principal */}
+      <div style={{ flex:1, marginLeft:isMobile?0:(sidebarOpen?216:64), transition:"margin-left 0.25s", display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden" }}>
 
         {/* Header */}
         <header style={{ height:64, flexShrink:0, background:C.headerBg, borderBottom:`1px solid ${C.headerBorder}`, display:"flex", alignItems:"center", padding:isMobile?"0 16px":"0 24px", gap:12, zIndex:30 }}>
@@ -393,7 +367,6 @@ export default function DashboardPage({ onLogout }) {
           </div>
           <div style={{ flex:1 }}/>
 
-          {/* Avatar + menú */}
           <div ref={menuRef} style={{ position:"relative" }}>
             <button onClick={()=>setShowUserMenu(v=>!v)}
               style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:"4px 6px", borderRadius:8 }}
@@ -414,8 +387,8 @@ export default function DashboardPage({ onLogout }) {
             {showUserMenu && (
               <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"8px 0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)", minWidth:180, zIndex:100 }}>
                 {[
-                  { label:"Mi perfil",    Ico:IC.User,    fn:()=>alert("Perfil en desarrollo") },
-                  { label:"Configuración",Ico:IC.Settings, fn:()=>alert("Configuración en desarrollo") },
+                  { label:"Mi perfil",     Ico:IC.User,     fn:()=>alert("Perfil en desarrollo")         },
+                  { label:"Configuración", Ico:IC.Settings, fn:()=>alert("Configuración en desarrollo")  },
                 ].map(item=>(
                   <button key={item.label} onClick={()=>{ item.fn(); setShowUserMenu(false); }}
                     style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:"none", border:"none", cursor:"pointer", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}
@@ -436,7 +409,6 @@ export default function DashboardPage({ onLogout }) {
           </div>
         </header>
 
-       {/* Contenido adaptable con scroll vertical independiente */}
         <main style={{ flex:1, padding:isMobile?"14px":"20px 24px", overflowY:"auto", overflowX:"hidden", display:"flex", flexDirection:"column", minHeight:0 }}>
           {renderVista()}
         </main>
@@ -444,7 +416,6 @@ export default function DashboardPage({ onLogout }) {
 
       {modal && <ModalCantidad tipo={modal} onConfirm={confirmar} onClose={()=>setModal(null)}/>}
 
-      {/* 🎨 REGLAS INYECTADAS DE MEDIA QUERIES PARA ADAPTACIÓN GLOBAL DE REJILLAS */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
         @keyframes popIn{from{opacity:0;transform:scale(0.88) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -452,100 +423,7 @@ export default function DashboardPage({ onLogout }) {
         select option { background:#111; color:#f0f4f8; }
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
-        
-        /* Grillas Inteligentes: Se encogen en celular y se expanden en PC */
-        .responsive-grid {
-          display: grid !important;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
-        }
-        .responsive-grid-ops {
-          display: grid !important;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-        }
-        
-        @media (max-width: 600px) {
-          .responsive-grid {
-            grid-template-columns: 1fr !important; /* 1 sola columna vertical en teléfonos pequeños */
-          }
-          .responsive-grid-ops {
-            grid-template-columns: 1fr !important;
-          }
-        }
       `}</style>
-    </div>
-  );
-}
-
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
-function OpCard({ Icon, title, desc, onClick }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none", width: "100%" }}>
-      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
-        <Icon/>
-      </div>
-      <div style={{ flex:1 }}>
-        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, color:"#f0f4f8", margin:"0 0 3px", textTransform:"uppercase" }}>{title}</h4>
-        <p style={{ fontSize:13, color:"#8a9bb0", margin:0, lineHeight:1.3 }}>{desc}</p>
-      </div>
-      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700 }}>→</div>
-    </button>
-  );
-}
-
-function AdminCard({ titulo, Icon, desc, color, onClick }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"space-between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
-          <Icon/>
-        </div>
-        <span style={{ fontSize:12, color:C.textGhost, fontWeight:600 }}>Módulo</span>
-      </div>
-      <div>
-        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.02em" }}>{titulo}</h4>
-        <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>{desc}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
-function OpCard({ Icon, title, desc, onClick }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none", width: "100%" }}>
-      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
-        <Icon/>
-      </div>
-      <div style={{ flex:1 }}>
-        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, color:"#f0f4f8", margin:"0 0 3px", textTransform:"uppercase" }}>{title}</h4>
-        <p style={{ fontSize:13, color:"#8a9bb0", margin:0, lineHeight:1.3 }}>{desc}</p>
-      </div>
-      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700 }}>→</div>
-    </button>
-  );
-}
-
-function AdminCard({ titulo, Icon, desc, color, onClick }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"space-between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
-          <Icon/>
-        </div>
-        <span style={{ fontSize:12, color:C.textGhost, fontWeight:600 }}>Módulo</span>
-      </div>
-      <div>
-        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.02em" }}>{titulo}</h4>
-        <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>{desc}</p>
-      </div>
     </div>
   );
 }
