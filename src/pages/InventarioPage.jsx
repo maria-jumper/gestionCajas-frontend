@@ -934,3 +934,4 @@ export default function InventarioPage({ onVolver }) {
     </div>
   );
 }
+}
