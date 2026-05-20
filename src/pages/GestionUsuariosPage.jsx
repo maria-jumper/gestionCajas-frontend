@@ -203,7 +203,14 @@ export default function GestionUsuarios({ onVolver }) {
   const rolActual = ROLES_ALL.find(r => r.value === form.rol) || ROLES[0];
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, width:"100%" }}>
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      width: "100%", 
+      minHeight: "100%", 
+      boxSizing: "border-box",
+      paddingBottom: "30px" 
+    }}>
       
       {/* ── CABECERA GENERAL ── */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22, flexShrink:0, flexWrap:"wrap", gap:12 }}>
@@ -298,10 +305,10 @@ export default function GestionUsuarios({ onVolver }) {
       ) : (
         
         /* [VISTA B]: CREAR NUEVO USUARIO TOTALMENTE RESPONSIVO */
-        <div className="responsive-user-layout" style={{ flex:1, display:"grid", gridTemplateColumns:"1fr 320px", gap:16, minHeight:0 }}>
+        <div className="responsive-user-layout" style={{ flex:1, display:"grid", gridTemplateColumns:"1fr 320px", gap:16, height:"auto", alignItems:"start" }}>
           
           {/* Panel del Formulario */}
-          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px", display:"flex", flexDirection:"column" }}>
             <h3 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:16, fontWeight:700, color:C.textPrimary, margin:"0 0 16px" }}>Nuevo usuario</h3>
 
             {exito && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>✓ {exito}</div>}
@@ -388,7 +395,7 @@ export default function GestionUsuarios({ onVolver }) {
             </div>
 
             {/* Botones del Formulario */}
-            <div style={{ display:"flex", gap:10, marginTop:18, flexShrink:0 }}>
+            <div style={{ display:"flex", gap:10, marginTop:24, flexShrink:0 }}>
               <button onClick={()=>{ setVista("lista"); setErrs({}); setErrGlobal(""); }} style={{ ...btnGhost, flex:1 }}
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>Cancelar</button>
@@ -403,7 +410,7 @@ export default function GestionUsuarios({ onVolver }) {
 
           {/* Panel de Vista Previa Lateral */}
           <div className="responsive-preview-panel" style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px", flex:1 }}>
+            <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px" }}>
               <p style={{ fontSize:10, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 16px", fontFamily:"'DM Sans',sans-serif" }}>Vista previa</p>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10, marginBottom:16 }}>
                 <div style={{ width:56, height:56, borderRadius:"50%", background:rolActual.color+"22", border:`2px solid ${rolActual.color}45`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:22, color:rolActual.color, fontFamily:"'DM Sans',sans-serif" }}>
@@ -464,11 +471,17 @@ export default function GestionUsuarios({ onVolver }) {
         ::placeholder { color:rgba(255,255,255,0.18)!important; } 
         select option { background:#111; color:#f0f4f8; }
         
-        @media (max-width: 820px) {
+        /* Forzar cambio a una columna si la pantalla es estrecha o tiene poca altura (Laptops) */
+        @media (max-width: 1024px), (max-height: 840px) {
           .responsive-user-layout {
             grid-template-columns: 1fr !important;
-            overflow-y: auto !important;
           }
+          .responsive-preview-panel {
+            margin-top: 14px;
+          }
+        }
+
+        @media (max-width: 820px) {
           .responsive-pwd-grid {
             grid-template-columns: 1fr !important;
             gap: 14px !important;
@@ -476,10 +489,8 @@ export default function GestionUsuarios({ onVolver }) {
           .responsive-role-grid {
             grid-template-columns: 1fr !important;
           }
-          .responsive-preview-panel {
-            margin-top: 10px;
-          }
         }
+
         @media (max-width: 480px) {
           .custom-table-container {
             margin: 0 -4px;
