@@ -4,9 +4,9 @@ import GestionUsuarios from "./GestionUsuariosPage";
 
 // ─── Paleta fija negra/naranja ────────────────────────────────────────────────
 const C = {
-  sidebarBg:    "#0d0d0d",
+  sidebarBg:     "#0d0d0d",
   sidebarBorder:"rgba(255,255,255,0.06)",
-  headerBg:     "#0d0d0d",
+  headerBg:      "#0d0d0d",
   headerBorder: "rgba(255,255,255,0.06)",
   mainBg:       "#0d0d0d",
   cardBg:       "#111111",
@@ -110,7 +110,8 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
           onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:14,marginBottom:24 }}>
+        {/* Cambiado a CSS adaptable dinámico por la clase de estilos responsiva integrada */}
+        <div className="responsive-grid" style={{ marginBottom:24 }}>
           {datos.map((item,i)=>(
             <div key={i} style={{ background:"#111111",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"1.25rem",boxSizing:"border-box" }}>
               <div style={{ fontSize:11,fontWeight:700,color:"#FF6B00",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.1em",paddingBottom:10,borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:8 }}>
@@ -123,13 +124,14 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
                   <input required type="text" placeholder="Ej: GUIA-00123" value={item.guia} onChange={e=>set(i,"guia",e.target.value)} style={inputS}
                     onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
                 </div>
-                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-                  <div>
+                {/* Cambiado de grid rígido a flex configurable para que baje en pantallas muy angostas */}
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  <div style={{ flex:"1 1 130px" }}>
                     <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>Precio ($)</label>
                     <input required type="number" min="0" step="0.01" placeholder="0.00" value={item.precio} onChange={e=>set(i,"precio",e.target.value)} style={inputS}
                       onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
                   </div>
-                  <div>
+                  <div style={{ flex:"1 1 130px" }}>
                     <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>Método de pago</label>
                     <select value={item.metodo} onChange={e=>set(i,"metodo",e.target.value)} style={{ ...inputS,cursor:"pointer" }}
                       onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}>
@@ -143,7 +145,7 @@ function FormularioRegistros({ tipo, cantidad, onVolver }) {
           ))}
         </div>
         <div style={{ display:"flex",justifyContent:"flex-end" }}>
-          <button type="submit" style={{ padding:"12px 32px",borderRadius:8,border:"none",background:guardado?C.success:"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all 0.2s" }}
+          <button type="submit" style={{ width:"100%", maxWidth:320, padding:"12px 32px",borderRadius:8,border:"none",background:guardado?C.success:"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all 0.2s" }}
             onMouseEnter={e=>{ if(!guardado) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>{ if(!guardado) e.currentTarget.style.background="#FF6B00"; }}>
             {guardado?"✓ ¡Guardado!":`Guardar ${cantidad} ${cantidad===1?"registro":"registros"}`}
           </button>
@@ -181,6 +183,22 @@ export default function DashboardPage({ onLogout }) {
   const [showUserMenu,setShowUserMenu]= useState(false);
   const menuRef = useRef(null);
 
+  // 🔌 DETECTOR DINÁMICO DE MÓVILES (Evita romper la UI en pantallas chicas)
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkSize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // En celular arranca cerrado, en PC abierto
+      setSidebarOpen(!mobile);
+    };
+    
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
+
   useEffect(() => {
     const fn = e => { if(menuRef.current && !menuRef.current.contains(e.target)) setShowUserMenu(false); };
     document.addEventListener("mousedown", fn);
@@ -196,7 +214,7 @@ export default function DashboardPage({ onLogout }) {
   const isAdmin = rol === "administrador" || rol === "admin";
 
   const navItems = [
-    { key:"inicio",        label:"Inicio",       Icon:IC.Home     },
+    { key:"inicio",        label:"Inicio",        Icon:IC.Home     },
     { key:"entregas",      label:"Entregas",      Icon:IC.Box      },
     { key:"envios",        label:"Envíos",        Icon:IC.Truck    },
     ...(isAdmin ? [
@@ -217,7 +235,8 @@ export default function DashboardPage({ onLogout }) {
 
   const handleNav = key => {
     setActiveNav(key);
-    if(key==="inicio")                { setVista("inicio"); return; }
+    if(isMobile) setSidebarOpen(false); // Autocerrar el menú al cambiar de sección en celulares
+    if(key==="inicio")                 { setVista("inicio"); return; }
     if(key==="entregas"||key==="envios") { setModal(key); return; }
     if(key==="usuarios")              { setVista("usuarios"); return; }
     if(MODULOS_META[key])             { setVista(key); return; }
@@ -248,22 +267,25 @@ export default function DashboardPage({ onLogout }) {
       <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, gap:14 }}>
 
         {/* Banner */}
-        <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"20px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0, position:"relative", overflow:"hidden" }}>
+        <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:isMobile?"16px":"20px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0, position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"#FF6B00", borderRadius:"12px 0 0 12px" }}/>
-          <div style={{ paddingLeft:16 }}>
-            <p style={{ fontSize:12, color:C.textSec, margin:"0 0 2px" }}>{new Date().toLocaleDateString("es-CO",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
-            <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:900, color:C.textPrimary, margin:"0 0 4px", textTransform:"uppercase" }}>¡Bienvenido, {nombre}! 👋</h2>
-            <p style={{ fontSize:13, color:C.textSec, margin:0 }}>Gestiona tus operaciones de forma rápida y eficiente desde un solo lugar.</p>
+          <div style={{ paddingLeft: isMobile ? 8 : 16 }}>
+            <p style={{ fontSize:11, color:C.textSec, margin:"0 0 2px" }}>{new Date().toLocaleDateString("es-CO",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</p>
+            <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize: isMobile ? 22 : 26, fontWeight:900, color:C.textPrimary, margin:"0 0 4px", textTransform:"uppercase" }}>¡Bienvenido, {nombre}! 👋</h2>
+            <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>Gestiona tus operaciones de forma rápida y eficiente.</p>
           </div>
-          <div style={{ opacity:0.08, flexShrink:0 }}>
-            <svg viewBox="0 0 120 70" width="120" height="70"><rect x="8" y="20" width="38" height="44" rx="4" fill="#FF6B00"/><rect x="16" y="6" width="22" height="14" rx="3" fill="#FF6B00"/><circle cx="92" cy="36" r="26" fill="#FF6B00"/><polyline points="80,36 90,46 106,26" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </div>
+          {!isMobile && (
+            <div style={{ opacity:0.08, flexShrink:0 }}>
+              <svg viewBox="0 0 120 70" width="120" height="70"><rect x="8" y="20" width="38" height="44" rx="4" fill="#FF6B00"/><rect x="16" y="6" width="22" height="14" rx="3" fill="#FF6B00"/><circle cx="92" cy="36" r="26" fill="#FF6B00"/><polyline points="80,36 90,46 106,26" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+          )}
         </div>
 
         {/* Operaciones */}
         <div style={{ flexShrink:0 }}>
           <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 10px" }}>¿Qué operación deseas realizar hoy?</p>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          {/* Grilla flexible en lugar de columnas rígidas */}
+          <div className="responsive-grid-ops" style={{ display:"grid", gap:12 }}>
             {[
               { key:"entregas", Icon:IC.Box,   title:"Entregas", desc:"Registra guías y completa entregas de paquetes." },
               { key:"envios",   Icon:IC.Truck, title:"Envíos",   desc:"Registra nuevos paquetes para enviar." },
@@ -274,8 +296,9 @@ export default function DashboardPage({ onLogout }) {
         {/* Administración */}
         {isAdmin && (
           <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0 }}>
-            <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 10px", flexShrink:0 }}>Administración</p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, flex:1, minHeight:0 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"10px 0 10px", flexShrink:0 }}>Administración</p>
+            {/* Grilla auto-adaptable: Si no cabe en celular, hace salto de línea automáticamente */}
+            <div className="responsive-grid" style={{ display:"grid", gap:12, flex:1, minHeight:0 }}>
               {[
                 { key:"inventario", titulo:"Inventario",       Icon:IC.List,    desc:"Stock de paquetes y recursos.",              color:"#6366f1" },
                 { key:"informes",   titulo:"Informes",          Icon:IC.Chart,   desc:"Reportes y métricas del negocio.",            color:"#ec4899" },
@@ -290,13 +313,30 @@ export default function DashboardPage({ onLogout }) {
   };
 
   return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:C.mainBg, fontFamily:"'DM Sans','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:C.mainBg, fontFamily:"'DM Sans','Helvetica Neue',Arial,sans-serif", position:"relative" }}>
 
-      {/* ── SIDEBAR ── */}
-      <aside style={{ width:sidebarOpen?216:64, flexShrink:0, background:C.sidebarBg, borderRight:`1px solid ${C.sidebarBorder}`, display:"flex", flexDirection:"column", transition:"width 0.25s", overflow:"hidden", position:"fixed", top:0, left:0, bottom:0, zIndex:40 }}>
+      {/* ── SIDEBAR ADAPTABLE ── */}
+      <aside style={{ 
+        width: sidebarOpen ? 216 : (isMobile ? 0 : 64), 
+        flexShrink:0, 
+        background:C.sidebarBg, 
+        borderRight:`1px solid ${C.sidebarBorder}`, 
+        display:"flex", 
+        flexDirection:"column", 
+        transition:"all 0.25s", 
+        overflow:"hidden", 
+        position:"fixed", 
+        top:0, 
+        left:0, 
+        bottom:0, 
+        zIndex:150 // Por encima de todo en móvil
+      }}>
 
-        <div style={{ height:64, padding:"0 14px", display:"flex", alignItems:"center", borderBottom:`1px solid ${C.sidebarBorder}`, flexShrink:0 }}>
-          <Logo collapsed={!sidebarOpen}/>
+        <div style={{ height:64, padding:"0 14px", display:"flex", alignItems:"center", borderBottom:`1px solid ${C.sidebarBorder}`, flexShrink:0, justifyContent:"space-between" }}>
+          <Logo collapsed={isMobile ? false : !sidebarOpen}/>
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(false)} style={{ background:"none", border:"none", color:C.textSec, fontSize:18, cursor:"pointer" }}>✕</button>
+          )}
         </div>
 
         <nav style={{ flex:1, padding:"10px 8px", overflowY:"auto", overflowX:"hidden" }}>
@@ -308,7 +348,7 @@ export default function DashboardPage({ onLogout }) {
                 onMouseEnter={e=>{ if(!active){ e.currentTarget.style.background="rgba(255,255,255,0.06)"; e.currentTarget.style.color="rgba(255,255,255,0.8)"; }}}
                 onMouseLeave={e=>{ if(!active){ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=C.navText; }}}>
                 <span style={{ flexShrink:0 }}><Icon/></span>
-                {sidebarOpen && <span>{label}</span>}
+                {(sidebarOpen || isMobile) && <span>{label}</span>}
               </button>
             );
           })}
@@ -319,45 +359,60 @@ export default function DashboardPage({ onLogout }) {
             onMouseEnter={e=>{ e.currentTarget.style.background="rgba(255,255,255,0.06)"; }}
             onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; }}>
             <span style={{ flexShrink:0 }}><IC.Help/></span>
-            {sidebarOpen && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
+            {(sidebarOpen || isMobile) && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
           </button>
         </div>
       </aside>
 
-      {/* ── ÁREA PRINCIPAL ── */}
-      <div style={{ flex:1, marginLeft:sidebarOpen?216:64, transition:"margin-left 0.25s", display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden" }}>
+      {/* 🪵 CAPA DE FONDO OSCURA: Cierra el menú al tocar fuera en celulares */}
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:140 }} />
+      )}
+
+      {/* ── ÁREA PRINCIPAL DINÁMICA ── */}
+      <div style={{ 
+        flex:1, 
+        marginLeft: isMobile ? 0 : (sidebarOpen ? 216 : 64), 
+        transition:"margin-left 0.25s", 
+        display:"flex", 
+        flexDirection:"column", 
+        height:"100vh", 
+        overflow:"hidden" 
+      }}>
 
         {/* Header */}
-        <header style={{ height:64, flexShrink:0, background:C.headerBg, borderBottom:`1px solid ${C.headerBorder}`, display:"flex", alignItems:"center", padding:"0 24px", gap:14, zIndex:30 }}>
+        <header style={{ height:64, flexShrink:0, background:C.headerBg, borderBottom:`1px solid ${C.headerBorder}`, display:"flex", alignItems:"center", padding:isMobile?"0 16px":"0 24px", gap:12, zIndex:30 }}>
           <button onClick={()=>setSidebarOpen(v=>!v)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textSec, padding:4, display:"flex", alignItems:"center" }}>
             <IC.Menu/>
           </button>
           <div>
-            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:900, color:C.textPrimary, margin:0, textTransform:"uppercase" }}>{paginaTitulo}</h1>
-            <p style={{ fontSize:11, color:C.textGhost, margin:0 }}>{paginaSub}</p>
+            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:isMobile?18:20, fontWeight:900, color:C.textPrimary, margin:0, textTransform:"uppercase" }}>{paginaTitulo}</h1>
+            {!isMobile && <p style={{ fontSize:11, color:C.textGhost, margin:0 }}>{paginaSub}</p>}
           </div>
           <div style={{ flex:1 }}/>
 
           {/* Avatar + menú */}
           <div ref={menuRef} style={{ position:"relative" }}>
             <button onClick={()=>setShowUserMenu(v=>!v)}
-              style={{ display:"flex", alignItems:"center", gap:10, background:"none", border:"none", cursor:"pointer", padding:"4px 8px", borderRadius:8 }}
+              style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:"4px 6px", borderRadius:8 }}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
               onMouseLeave={e=>e.currentTarget.style.background="none"}>
-              <div style={{ width:34, height:34, borderRadius:"50%", background:"#FF6B00", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:14, color:"#fff", flexShrink:0 }}>
+              <div style={{ width:32, height:32, borderRadius:"50%", background:"#FF6B00", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:13, color:"#fff", flexShrink:0 }}>
                 {nombre.slice(0,2).toUpperCase()}
               </div>
-              <div style={{ textAlign:"left", lineHeight:1.2 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:C.textPrimary }}>{nombre}</div>
-                <div style={{ fontSize:11, color:C.textGhost }}>{email}</div>
-              </div>
+              {!isMobile && (
+                <div style={{ textAlign:"left", lineHeight:1.2 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:C.textPrimary }}>{nombre}</div>
+                  <div style={{ fontSize:11, color:C.textGhost }}>{email}</div>
+                </div>
+              )}
               <IC.Chevron/>
             </button>
 
             {showUserMenu && (
-              <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"8px 0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)", minWidth:200, zIndex:100 }}>
+              <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"8px 0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)", minWidth:180, zIndex:100 }}>
                 {[
-                  { label:"Mi perfil",    Ico:IC.User,     fn:()=>alert("Perfil en desarrollo") },
+                  { label:"Mi perfil",    Ico:IC.User,    fn:()=>alert("Perfil en desarrollo") },
                   { label:"Configuración",Ico:IC.Settings, fn:()=>alert("Configuración en desarrollo") },
                 ].map(item=>(
                   <button key={item.label} onClick={()=>{ item.fn(); setShowUserMenu(false); }}
@@ -379,14 +434,15 @@ export default function DashboardPage({ onLogout }) {
           </div>
         </header>
 
-        {/* Contenido */}
-        <main style={{ flex:1, padding:"20px 24px", overflow:"hidden", display:"flex", flexDirection:"column", minHeight:0 }}>
+        {/* Contenido adaptable con scroll vertical independiente */}
+        <main style={{ flex:1, padding:isMobile?"14px":"20px 24px", overflowY:"auto", overflowX:"hidden", display:"flex", flexDirection:"column", minHeight:0 }}>
           {renderVista()}
         </main>
       </div>
 
       {modal && <ModalCantidad tipo={modal} onConfirm={confirmar} onClose={()=>setModal(null)}/>}
 
+      {/* 🎨 REGLAS INYECTADAS DE MEDIA QUERIES PARA ADAPTACIÓN GLOBAL DE REJILLAS */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
         @keyframes popIn{from{opacity:0;transform:scale(0.88) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -394,6 +450,25 @@ export default function DashboardPage({ onLogout }) {
         select option { background:#111; color:#f0f4f8; }
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
+        
+        /* Grillas Inteligentes: Se encogen en celular y se expanden en PC */
+        .responsive-grid {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+        }
+        .responsive-grid-ops {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+        }
+        
+        @media (max-width: 600px) {
+          .responsive-grid {
+            grid-template-columns: 1fr !important; /* 1 sola columna vertical en teléfonos pequeños */
+          }
+          .responsive-grid-ops {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
     </div>
   );
@@ -405,30 +480,33 @@ function OpCard({ Icon, title, desc, onClick }) {
   return (
     <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none" }}>
-      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
+      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyBox:"center", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
         <Icon/>
       </div>
       <div style={{ flex:1 }}>
         <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, color:"#f0f4f8", margin:"0 0 3px", textTransform:"uppercase" }}>{title}</h4>
         <p style={{ fontSize:13, color:"#8a9bb0", margin:0, lineHeight:1.3 }}>{desc}</p>
       </div>
-      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700, transition:"all 0.2s" }}>→</div>
+      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700 }}>→</div>
     </button>
   );
 }
 
-function AdminCard({ Icon, titulo, desc, color, onClick }) {
+function AdminCard({ titulo, Icon, desc, color, onClick }) {
   const [hov, setHov] = useState(false);
   return (
-    <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:"#111111", border:`1px solid ${hov?color+"66":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 16px", cursor:"pointer", textAlign:"left", display:"flex", flexDirection:"column", gap:12, height:"100%", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?`0 4px 12px ${color}20`:"none" }}>
-      <div style={{ width:40, height:40, borderRadius:10, background:color+"1a", display:"flex", alignItems:"center", justifyContent:"center", color }}>
-        <Icon/>
+    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
+          <Icon/>
+        </div>
+        <span style={{ fontSize:12, color:C.textGhost, fontWeight:600 }}>Módulo</span>
       </div>
-      <div style={{ flex:1 }}>
-        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:15, fontWeight:900, color:"#f0f4f8", margin:"0 0 4px", textTransform:"uppercase" }}>{titulo}</h4>
-        <p style={{ fontSize:12, color:"#4e6070", margin:0, lineHeight:1.4 }}>{desc}</p>
+      <div>
+        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.02em" }}>{titulo}</h4>
+        <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>{desc}</p>
       </div>
-    </button>
+    </div>
   );
 }
