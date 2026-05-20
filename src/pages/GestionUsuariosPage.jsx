@@ -84,7 +84,6 @@ function EyeIcon({ open }) {
 
 const DEMO = [
   { id:1, username:"admin",  nombre:"Administrador", rol:"admin",      creado:"06 de may de 2026" },
-  { id:2, username:"jordan", nombre:"Jordan Smith",  rol:"secretaria", creado:"06 de may de 2026" },
 ];
 
 export default function GestionUsuarios({ onVolver }) {
@@ -101,27 +100,36 @@ export default function GestionUsuarios({ onVolver }) {
   const [showP2,     setShowP2]     = useState(false);
   const [errs,       setErrs]       = useState({});
 
+  // Detectar la URL real de Render dinámicamente
+  const API_URL = import.meta.env.VITE_API_URL || "https://api-gestion-cajas.onrender.com/api"; 
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  // Cargar usuarios de la base de datos real
   useEffect(() => {
-    (async () => {
+    const cargarUsuarios = async () => {
       try {
         const token = getToken?.();
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/usuarios`,
-          { headers: token ? { Authorization:`Bearer ${token}` } : {} }
-        );
-        if (res.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) setUsuarios(d); }
-      } catch {}
-    })();
-  }, []);
+        const res = await fetch(`${API_URL}/usuarios`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const d = await res.json();
+          if (Array.isArray(d)) setUsuarios(d);
+        }
+      } catch (err) {
+        console.error("Error cargando usuarios:", err);
+      }
+    };
+    cargarUsuarios();
+  }, [API_URL]);
 
   const validar = () => {
     const e = {};
     if (!form.username.trim())        e.username  = "Requerido";
     if (form.username.includes(" "))  e.username  = "Sin espacios";
     if (!form.nombre.trim())          e.nombre    = "Requerido";
-    if (form.password.length < 6)     e.password  = "Mínimo 6 caracteres";
+    if (!form.password || form.password.length < 6) e.password  = "Mínimo 6 caracteres";
     if (form.password !== form.confirmar) e.confirmar = "No coinciden";
     setErrs(e);
     return !Object.keys(e).length;
@@ -130,41 +138,67 @@ export default function GestionUsuarios({ onVolver }) {
   const crear = async () => {
     if (!validar()) return;
     setCargando(true);
+    setErrGlobal("");
+    
     try {
       const token = getToken?.();
-      await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/auth/register`,
-        {
-          method:"POST",
-          headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) },
-          body:JSON.stringify({ username:form.username.trim().toLowerCase(), nombre:form.nombre.trim(), password:form.password, rol:form.rol }),
-        }
-      );
-    } catch {}
-    const nuevo = {
-      id:Date.now(),
-      username:form.username.trim().toLowerCase(),
-      nombre:form.nombre.trim(),
-      rol:form.rol,
-      creado:new Date().toLocaleDateString("es-CO",{ day:"2-digit", month:"short", year:"numeric" }),
-    };
-    setUsuarios(prev => [...prev, nuevo]);
-    setCargando(false);
-    setExito(`@${nuevo.username} creado correctamente.`);
-    setForm({ username:"", nombre:"", password:"", confirmar:"", rol:"secretaria" });
-    setErrs({});
-    setTimeout(() => { setExito(""); setVista("lista"); }, 1800);
+      // Apuntamos a la ruta correcta de creación (/usuarios o /auth/register según tu backend)
+      const res = await fetch(`${API_URL}/usuarios`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          ...(token ? { Authorization: `Bearer ${token}` } : {}) 
+        },
+        body: JSON.stringify({ 
+          username: form.username.trim().toLowerCase(), 
+          nombre: form.nombre.trim(), 
+          password: form.password, 
+          rol: form.role || form.rol 
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error al procesar la solicitud en el servidor.");
+      }
+
+      const nuevo = {
+        id: data.id || Date.now(),
+        username: form.username.trim().toLowerCase(),
+        nombre: form.nombre.trim(),
+        rol: form.rol,
+        creado: new Date().toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" }),
+      };
+
+      setUsuarios(prev => [...prev, nuevo]);
+      setExito(`@${nuevo.username} creado correctamente.`);
+      setForm({ username: "", nombre: "", password: "", confirmar: "", rol: "secretaria" });
+      setErrs({});
+      setTimeout(() => { setExito(""); setVista("lista"); }, 1800);
+
+    } catch (err) {
+      setErrGlobal(err.message || "No se pudo conectar con el backend.");
+    } finally {
+      setCargando(false);
+    }
   };
 
   const eliminar = async (id) => {
     try {
       const token = getToken?.();
-      await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/usuarios/${id}`,
-        { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} }
-      );
-    } catch {}
-    setUsuarios(prev => prev.filter(u => u.id !== id));
+      const res = await fetch(`${API_URL}/usuarios/${id}`, { 
+        method: "DELETE", 
+        headers: token ? { Authorization: `Bearer ${token}` } : {} 
+      });
+      if (res.ok) {
+        setUsuarios(prev => prev.filter(u => u.id !== id));
+      } else {
+        alert("No se pudo eliminar el usuario del servidor.");
+      }
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+    }
     setConfirmDel(null);
   };
 
@@ -301,7 +335,7 @@ export default function GestionUsuarios({ onVolver }) {
           <h3 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:16, fontWeight:700, color:C.textPrimary, margin:"0 0 20px" }}>Nuevo usuario</h3>
 
           {exito    && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>✓ {exito}</div>}
-          {errGlobal&& <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", color:"#ef4444", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>{errGlobal}</div>}
+          {errGlobal&& <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", color:"#ef4444", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>⚠️ {errGlobal}</div>}
 
           <div style={{ display:"flex", flexDirection:"column", gap:14, flex:1 }}>
 
@@ -398,7 +432,7 @@ export default function GestionUsuarios({ onVolver }) {
             <button onClick={crear} disabled={cargando}
               style={{ ...btnOrange, flex:2, opacity:cargando?0.7:1 }}
               onMouseEnter={e=>{ if(!cargando) e.currentTarget.style.background="#E55E00"; }}
-              onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>
+              onMouseLeave={e=>{ if(!cargando) e.currentTarget.style.background="#FF6B00" }}>
               {cargando?"Creando...":"Crear usuario →"}
             </button>
           </div>
