@@ -86,3 +86,23 @@ html, body, #root {
 .t-accent  { color: var(--accent); }
 .border-th { border-color: var(--border); }
 .border-th-accent { border-color: var(--border-accent); }
+/* ─── GRILLAS RESPONSIVAS GLOBALES ────────────────── */
+.responsive-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+
+.responsive-grid-ops {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+}
+
+/* Ajuste crítico para teléfonos pequeños */
+@media (max-width: 600px) {
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .responsive-grid-ops {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import GestionInventario from "./InventarioPage";
 import GestionUsuarios from "./GestionUsuariosPage";
 
 // ─── Paleta fija negra/naranja ────────────────────────────────────────────────
@@ -260,6 +261,7 @@ export default function DashboardPage({ onLogout }) {
     if(vista==="form-entregas") return <FormularioRegistros tipo="entregas" cantidad={cantidad} onVolver={volver}/>;
     if(vista==="form-envios")   return <FormularioRegistros tipo="envios"   cantidad={cantidad} onVolver={volver}/>;
     if(vista==="usuarios")      return <GestionUsuarios onVolver={volver}/>;
+    if(vista==="inventario")    return <GestionInventario onVolver={volver}/>;
     if(MODULOS_META[vista])     return <ModuloPlaceholder {...MODULOS_META[vista]} onVolver={volver}/>;
 
     // ── INICIO ──────────────────────────────────────────────────────────────
@@ -434,7 +436,7 @@ export default function DashboardPage({ onLogout }) {
           </div>
         </header>
 
-        {/* Contenido adaptable con scroll vertical independiente */}
+       {/* Contenido adaptable con scroll vertical independiente */}
         <main style={{ flex:1, padding:isMobile?"14px":"20px 24px", overflowY:"auto", overflowX:"hidden", display:"flex", flexDirection:"column", minHeight:0 }}>
           {renderVista()}
         </main>
@@ -479,8 +481,8 @@ function OpCard({ Icon, title, desc, onClick }) {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none" }}>
-      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyBox:"center", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
+      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none", width: "100%" }}>
+      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
         <Icon/>
       </div>
       <div style={{ flex:1 }}>
@@ -496,7 +498,44 @@ function AdminCard({ titulo, Icon, desc, color, onClick }) {
   const [hov, setHov] = useState(false);
   return (
     <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
+      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"space-between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
+          <Icon/>
+        </div>
+        <span style={{ fontSize:12, color:C.textGhost, fontWeight:600 }}>Módulo</span>
+      </div>
+      <div>
+        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.02em" }}>{titulo}</h4>
+        <p style={{ fontSize:12, color:C.textSec, margin:0, lineHeight:1.3 }}>{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
+function OpCard({ Icon, title, desc, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:"#111111", border:`1px solid ${hov?"#FF6B00":"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"20px 22px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)", boxShadow:hov?"0 4px 14px rgba(255,107,0,0.12)":"none", width: "100%" }}>
+      <div style={{ width:46, height:46, borderRadius:10, flexShrink:0, background:hov?"rgba(255,107,0,0.14)":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#FF6B00":"#8a9bb0", transition:"all 0.2s" }}>
+        <Icon/>
+      </div>
+      <div style={{ flex:1 }}>
+        <h4 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, color:"#f0f4f8", margin:"0 0 3px", textTransform:"uppercase" }}>{title}</h4>
+        <p style={{ fontSize:13, color:"#8a9bb0", margin:0, lineHeight:1.3 }}>{desc}</p>
+      </div>
+      <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:hov?"#FF6B00":"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:hov?"#fff":"#4e6070", fontSize:14, fontWeight:700 }}>→</div>
+    </button>
+  );
+}
+
+function AdminCard({ titulo, Icon, desc, color, onClick }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{ background:C.cardBg, border:`1px solid ${hov?color:"rgba(255,255,255,0.07)"}`, borderRadius:12, padding:"18px 20px", display:"flex", flexDirection:"column", justifyContent:"space-between", gap:14, cursor:"pointer", transition:"all 0.2s", transform:hov?"translateY(-2px)":"translateY(0)" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ width:38, height:38, borderRadius:8, background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center", color }}>
           <Icon/>
