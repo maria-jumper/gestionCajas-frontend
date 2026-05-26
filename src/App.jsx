@@ -1,30 +1,24 @@
+import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import SecretariaDashboard from "./pages/SecretariaDashboard";
-import MensajeroDashboard from "./pages/MensajeroDashboard";
 
 export default function App() {
-  // Traemos 'user' y 'logout' de tu contexto global
   const { user, logout } = useAuth();
+  const [loggedIn, setLoggedIn] = useState(!!user);
 
-  // 1. Si no hay usuario en el contexto, se muestra el Login directamente
-  if (!user) {
-    return <LoginPage />;
-  }
+  const handleLogin  = () => setLoggedIn(true);
+  const handleLogout = () => { logout(); setLoggedIn(false); };
 
-  // 2. Extraemos el rol de forma segura convirtiéndolo a minúsculas
+  if (!loggedIn) return <LoginPage onLogin={handleLogin}/>;
+
   const rol = (user?.rol || user?.role || "").toLowerCase();
 
-  // 3. Enrutamiento por roles
-  if (rol === "admin" || rol === "administrador") {
-    return <DashboardPage onLogout={logout} />;
-  }
+  // Admin o administrador → Dashboard completo
+  if (rol === "admin" || rol === "administrador")
+    return <DashboardPage onLogout={handleLogout}/>;
 
-  if (rol === "mensajero") {
-    return <MensajeroDashboard onLogout={logout} />;
-  }
-
-  // Secretaria u otros roles por defecto
-  return <SecretariaDashboard onLogout={logout} />;
+  // Secretaria (u otro rol) → Dashboard de secretaria con permisos dinámicos
+  return <SecretariaDashboard onLogout={handleLogout}/>;
 }
