@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import InventarioPage from "./InventarioPage";
 import GestionUsuarios from "./GestionUsuariosPage";
+import PerfilPage from "./PerfilPage";
+import ConfiguracionPage from "./ConfiguracionPage";
 
 const C = {
   sidebarBg:    "#0d0d0d",
@@ -244,33 +246,56 @@ export default function DashboardPage({ onLogout }) {
   ];
 
   const MODULOS_META = {
-    informes:     { titulo:"Informes",      emoji:"📊", descripcion:"Visualiza reportes detallados de entregas, envíos e ingresos.",    color:C.warning },
-    gastos:       { titulo:"Gastos",        emoji:"💰", descripcion:"Registra gastos de operación, nómina, insumos y otros egresos.",    color:C.danger  },
-    configuracion:{ titulo:"Configuración", emoji:"⚙️", descripcion:"Personaliza la configuración del sistema.",                        color:C.textSec },
+    informes: { titulo:"Informes", emoji:"📊", descripcion:"Visualiza reportes detallados de entregas, envíos e ingresos.", color:C.warning },
+    gastos:   { titulo:"Gastos",   emoji:"💰", descripcion:"Registra gastos de operación, nómina, insumos y otros egresos.", color:C.danger  },
   };
 
   const handleNav = key => {
     setActiveNav(key);
     if(isMobile) setSidebarOpen(false);
-    if(key==="inicio")                   { setVista("inicio");      return; }
-    if(key==="entregas"||key==="envios") { setModal(key);           return; }
-    if(key==="usuarios")                 { setVista("usuarios");    return; }
-    if(key==="inventario")               { setVista("inventario");  return; }
-    if(MODULOS_META[key])                { setVista(key);           return; }
+    if(key==="inicio")                   { setVista("inicio");        return; }
+    if(key==="entregas"||key==="envios") { setModal(key);             return; }
+    if(key==="usuarios")                 { setVista("usuarios");      return; }
+    if(key==="inventario")               { setVista("inventario");    return; }
+    if(key==="configuracion")            { setVista("configuracion"); return; }
+    if(MODULOS_META[key])                { setVista(key);             return; }
+  };
+
+  // ── Abrir perfil / configuración desde el dropdown ────────────────────────
+  const abrirPerfil = () => {
+    setVista("perfil");
+    setActiveNav("perfil");
+    setShowUserMenu(false);
+  };
+  const abrirConfig = () => {
+    setVista("configuracion");
+    setActiveNav("configuracion");
+    setShowUserMenu(false);
+    if(isMobile) setSidebarOpen(false);
   };
 
   const confirmar = cant => { setCant(cant); setVista(modal==="entregas"?"form-entregas":"form-envios"); setModal(null); };
   const volver    = () => { setVista("inicio"); setActiveNav("inicio"); };
 
-  const paginaTitulo = navItems.find(n=>n.key===activeNav)?.label || "Inicio";
-  const paginaSub    = activeNav==="inicio"?"Resumen general de operaciones": activeNav==="entregas"?"Gestión de entregas": activeNav==="envios"?"Registro de envíos":"Módulo del sistema";
+  const paginaTitulo =
+    activeNav==="perfil" ? "Mi Perfil"
+    : navItems.find(n=>n.key===activeNav)?.label || "Inicio";
+  const paginaSub =
+    activeNav==="inicio"        ? "Resumen general de operaciones"
+    : activeNav==="entregas"    ? "Gestión de entregas"
+    : activeNav==="envios"      ? "Registro de envíos"
+    : activeNav==="perfil"      ? "Información de tu cuenta"
+    : activeNav==="configuracion"? "Preferencias del sistema"
+    : "Módulo del sistema";
 
   const renderVista = () => {
-    if(vista==="form-entregas") return <FormularioRegistros tipo="entregas"  cantidad={cantidad} onVolver={volver}/>;
-    if(vista==="form-envios")   return <FormularioRegistros tipo="envios"    cantidad={cantidad} onVolver={volver}/>;
-    if(vista==="usuarios")      return <GestionUsuarios    onVolver={volver}/>;
-    if(vista==="inventario")    return <InventarioPage     onVolver={volver}/>;
-    if(MODULOS_META[vista])     return <ModuloPlaceholder  {...MODULOS_META[vista]} onVolver={volver}/>;
+    if(vista==="form-entregas")  return <FormularioRegistros tipo="entregas"   cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="form-envios")    return <FormularioRegistros tipo="envios"     cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="usuarios")       return <GestionUsuarios    onVolver={volver}/>;
+    if(vista==="inventario")     return <InventarioPage     onVolver={volver}/>;
+    if(vista==="perfil")         return <PerfilPage         onVolver={volver}/>;
+    if(vista==="configuracion")  return <ConfiguracionPage  onVolver={volver}/>;
+    if(MODULOS_META[vista])      return <ModuloPlaceholder  {...MODULOS_META[vista]} onVolver={volver}/>;
 
     return (
       <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, gap:14 }}>
@@ -344,7 +369,7 @@ export default function DashboardPage({ onLogout }) {
         </nav>
         <div style={{ padding:"10px 8px", borderTop:`1px solid ${C.sidebarBorder}`, flexShrink:0 }}>
           <button style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", cursor:"pointer", background:"transparent", color:C.navText, fontFamily:"'DM Sans',sans-serif", fontSize:14, whiteSpace:"nowrap" }}
-            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent">
             <span style={{ flexShrink:0 }}><IC.Help/></span>
             {(sidebarOpen||isMobile) && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
           </button>
@@ -385,18 +410,21 @@ export default function DashboardPage({ onLogout }) {
             </button>
 
             {showUserMenu && (
-              <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"8px 0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)", minWidth:180, zIndex:100 }}>
-                {[
-                  { label:"Mi perfil",     Ico:IC.User,     fn:()=>alert("Perfil en desarrollo")         },
-                  { label:"Configuración", Ico:IC.Settings, fn:()=>alert("Configuración en desarrollo")  },
-                ].map(item=>(
-                  <button key={item.label} onClick={()=>{ item.fn(); setShowUserMenu(false); }}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:"none", border:"none", cursor:"pointer", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}
-                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
-                    onMouseLeave={e=>e.currentTarget.style.background="none"}>
-                    <item.Ico/><span>{item.label}</span>
-                  </button>
-                ))}
+              <div style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"8px 0", boxShadow:"0 8px 24px rgba(0,0,0,0.5)", minWidth:190, zIndex:100 }}>
+                {/* ── Botón Mi perfil — conectado real ── */}
+                <button onClick={abrirPerfil}
+                  style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:"none", border:"none", cursor:"pointer", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}
+                  onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
+                  onMouseLeave={e=>e.currentTarget.style.background="none"}>
+                  <IC.User/><span>Mi perfil</span>
+                </button>
+                {/* ── Botón Configuración — conectado real ── */}
+                <button onClick={abrirConfig}
+                  style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:"none", border:"none", cursor:"pointer", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}
+                  onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}
+                  onMouseLeave={e=>e.currentTarget.style.background="none"}>
+                  <IC.Settings/><span>Configuración</span>
+                </button>
                 <div style={{ height:1, background:"rgba(255,255,255,0.06)", margin:"4px 0" }}/>
                 <button onClick={()=>{ handleLogout(); setShowUserMenu(false); }}
                   style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:"none", border:"none", cursor:"pointer", color:"#ef4444", fontFamily:"'DM Sans',sans-serif", fontSize:14 }}

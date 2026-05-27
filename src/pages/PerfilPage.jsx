@@ -1,30 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
-// ── Paleta ────────────────────────────────────────────────────────────────────
-const C = {
-  card:        "#111111",
-  cardBorder:  "rgba(255,255,255,0.08)",
-  accent:      "#FF6B00",
-  accentDim:   "rgba(255,107,0,0.14)",
-  textPrimary: "#f0f4f8",
-  textSec:     "#8a9bb0",
-  textGhost:   "#4a5568",
-  inputBg:     "#0a0a0a",
-  danger:      "#ef4444",
-  success:     "#10b981",
-};
+const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:4000/api"
+  : "https://api-gestion-cajas.onrender.com/api";
 
 const ROLES_INFO = {
-  admin:         { label: "Administrador", color: "#6366f1", emoji: "🛡️", desc: "Acceso total al sistema" },
-  administrador: { label: "Administrador", color: "#6366f1", emoji: "🛡️", desc: "Acceso total al sistema" },
-  secretaria:    { label: "Secretaria",    color: "#10b981", emoji: "📋", desc: "Registro de entregas y envíos" },
-  mensajero:     { label: "Mensajero",     color: "#f59e0b", emoji: "🛵", desc: "Gestión de entregas en ruta" },
+  admin:         { label:"Administrador", color:"#6366f1", emoji:"🛡️" },
+  administrador: { label:"Administrador", color:"#6366f1", emoji:"🛡️" },
+  secretaria:    { label:"Secretaria",    color:"#10b981", emoji:"📋" },
 };
-
-function getRolInfo(rol) {
-  return ROLES_INFO[rol?.toLowerCase()] || { label: rol || "Usuario", color: "#8a9bb0", emoji: "👤", desc: "Acceso básico" };
+function getRol(rol) {
+  return ROLES_INFO[rol?.toLowerCase()] || { label: rol||"Usuario", color:"#8a9bb0", emoji:"👤" };
 }
+
+// ── Estilos base ──────────────────────────────────────────────────────────────
+const inputS = {
+  width:"100%", boxSizing:"border-box",
+  padding:"11px 14px", borderRadius:8,
+  border:"1.5px solid rgba(255,255,255,0.09)",
+  background:"#0a0a0a", color:"#f0f4f8",
+  fontSize:14, outline:"none",
+  fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s",
+};
+const labelS = { display:"block", fontSize:11, fontWeight:700, color:"#4a5568", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" };
+const errS   = { fontSize:11, color:"#ef4444", margin:"4px 0 0", fontFamily:"'DM Sans',sans-serif" };
+const btnOrg = { display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:"none", background:"#FF6B00", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s" };
+const btnGh  = { ...btnOrg, background:"transparent", color:"#f0f4f8", border:"1px solid rgba(255,255,255,0.14)" };
 
 function EyeIcon({ open }) {
   return open
@@ -32,368 +34,315 @@ function EyeIcon({ open }) {
     : <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
 }
 
-const inputStyle = {
-  width: "100%", boxSizing: "border-box",
-  padding: "11px 14px", borderRadius: 8,
-  border: "1.5px solid rgba(255,255,255,0.09)",
-  background: "#0a0a0a", color: "#f0f4f8",
-  fontSize: 14, outline: "none",
-  fontFamily: "'DM Sans', sans-serif",
-  transition: "border-color 0.2s",
-};
+function PasswordField({ label, value, onChange, show, onToggle, error, placeholder }) {
+  return (
+    <div>
+      <label style={labelS}>{label}</label>
+      <div style={{ position:"relative" }}>
+        <input type={show?"text":"password"} value={value} onChange={onChange} placeholder={placeholder||"••••••••"}
+          style={{ ...inputS, paddingRight:42, borderColor:error?"#ef4444":"rgba(255,255,255,0.09)" }}
+          onFocus={e=>e.target.style.borderColor=error?"#ef4444":"#FF6B00"}
+          onBlur={e=>e.target.style.borderColor=error?"#ef4444":"rgba(255,255,255,0.09)"}/>
+        <button type="button" onClick={onToggle} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#4a5568", display:"flex", padding:0 }}>
+          <EyeIcon open={show}/>
+        </button>
+      </div>
+      {error && <p style={errS}>{error}</p>}
+    </div>
+  );
+}
 
-const labelStyle = {
-  display: "block", fontSize: 11, fontWeight: 700,
-  color: C.textGhost, textTransform: "uppercase",
-  letterSpacing: "0.08em", marginBottom: 6,
-  fontFamily: "'DM Sans', sans-serif",
-};
+function StrengthBar({ password }) {
+  if (!password) return null;
+  const len = password.length;
+  const score = len < 6 ? 1 : len < 10 ? 2 : 3;
+  const colors = ["","#ef4444","#f59e0b","#10b981"];
+  const labels = ["","Muy corta","Aceptable","Segura ✓"];
+  return (
+    <div style={{ marginTop:5 }}>
+      <div style={{ display:"flex", gap:3 }}>
+        {[1,2,3].map(i => (
+          <div key={i} style={{ flex:1, height:3, borderRadius:2, background:i<=score?colors[score]:"rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>
+        ))}
+      </div>
+      <p style={{ fontSize:11, color:colors[score], margin:"3px 0 0", fontFamily:"'DM Sans',sans-serif" }}>{labels[score]}</p>
+    </div>
+  );
+}
+
+// ── Panel izquierdo — Info del usuario ────────────────────────────────────────
+function PanelInfo({ user, nombre, email, username, rolInfo, onVolver }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+      {/* Avatar card */}
+      <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"24px 20px", display:"flex", flexDirection:"column", alignItems:"center", gap:14, textAlign:"center" }}>
+        <div style={{ width:72, height:72, borderRadius:"50%", background:rolInfo.color+"22", border:`3px solid ${rolInfo.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:28, color:rolInfo.color }}>
+          {nombre.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <div style={{ fontSize:17, fontWeight:700, color:"#f0f4f8", fontFamily:"'DM Sans',sans-serif" }}>{nombre}</div>
+          <div style={{ fontSize:12, color:"#8a9bb0", fontFamily:"'DM Sans',sans-serif", marginTop:2 }}>@{username}</div>
+        </div>
+        <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"4px 12px", borderRadius:20, fontSize:12, fontWeight:700, fontFamily:"'DM Sans',sans-serif", background:rolInfo.color+"1a", color:rolInfo.color, border:`1px solid ${rolInfo.color}40` }}>
+          {rolInfo.emoji} {rolInfo.label}
+        </span>
+      </div>
+
+      {/* Datos rápidos */}
+      <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"16px 18px" }}>
+        {[
+          { l:"Usuario", v:`@${username}` },
+          { l:"Email",   v:email           },
+          { l:"Rol",     v:rolInfo.label   },
+          { l:"Estado",  v:"Activo ✓", color:"#10b981" },
+        ].map((r,i,a) => (
+          <div key={r.l} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 0", borderBottom:i<a.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
+            <span style={{ fontSize:11, color:"#4a5568", textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:"'DM Sans',sans-serif" }}>{r.l}</span>
+            <span style={{ fontSize:12, fontWeight:600, color:r.color||"#f0f4f8", fontFamily:"'DM Sans',sans-serif", maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.v}</span>
+          </div>
+        ))}
+      </div>
+
+      {onVolver && (
+        <button onClick={onVolver} style={{ ...btnGh, justifyContent:"flex-start", gap:8 }}
+          onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
+          onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+          ← Volver
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
-export default function PerfilPage({ onVolver }) {
-  const { user, getToken } = useAuth();
+// PERFIL ADMIN
+// ══════════════════════════════════════════════════════════════════════════════
+function PerfilAdmin({ user, nombre, email, username, rolInfo, onVolver }) {
+  const { getToken } = useAuth();
+  const [tab, setTab] = useState("mi-cuenta"); // mi-cuenta | cambiar-pw | pw-usuarios
+  const [usuarios, setUsuarios] = useState([]);
 
-  const nombre   = user?.nombre || user?.name || user?.username || "Usuario";
-  const username = user?.username || "";
-  const email    = user?.email   || `${username.toLowerCase()}@cajasflow.com`;
-  const rol      = user?.rol     || user?.role || "";
-  const rolInfo  = getRolInfo(rol);
+  // Mi cuenta
+  const [infoForm, setInfoForm]     = useState({ nombre, email });
+  const [infoMsg,  setInfoMsg]      = useState("");
+  const [infoSaving,setInfoSaving]  = useState(false);
 
-  // Edición de nombre
-  const [editando,   setEditando]   = useState(false);
-  const [nuevoNombre,setNuevoNombre]= useState(nombre);
-  const [guardando,  setGuardando]  = useState(false);
-  const [msgNombre,  setMsgNombre]  = useState("");
+  // Mi contraseña
+  const [myPw,  setMyPw]   = useState({ actual:"", nueva:"", confirmar:"" });
+  const [myPwSh,setMyPwSh] = useState({ actual:false, nueva:false, confirmar:false });
+  const [myPwErr,setMyPwErr]= useState({});
+  const [myPwMsg,setMyPwMsg]= useState("");
+  const [myPwSaving,setMyPwSaving]= useState(false);
 
-  // Cambio de contraseña
-  const [seccion,    setSeccion]    = useState("info"); // info | password
-  const [pwForm,     setPwForm]     = useState({ actual:"", nueva:"", confirmar:"" });
-  const [showPw,     setShowPw]     = useState({ actual:false, nueva:false, confirmar:false });
-  const [pwErrs,     setPwErrs]     = useState({});
-  const [pwMsg,      setPwMsg]      = useState("");
-  const [pwGuardando,setPwGuardando]= useState(false);
+  // Contraseña de usuario
+  const [selUser,   setSelUser]    = useState(null);
+  const [newPwUser, setNewPwUser]  = useState({ nueva:"", confirmar:"" });
+  const [newPwSh,   setNewPwSh]    = useState({ nueva:false, confirmar:false });
+  const [newPwErr,  setNewPwErr]   = useState({});
+  const [newPwMsg,  setNewPwMsg]   = useState("");
+  const [newPwSaving,setNewPwSaving]=useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://api-gestion-cajas.onrender.com/api";
+  // Cargar usuarios para el tab pw-usuarios
+  useEffect(() => {
+    if (tab !== "pw-usuarios") return;
+    (async () => {
+      try {
+        const token = getToken?.();
+        const res = await fetch(`${API_URL}/usuarios`, { headers: token?{Authorization:`Bearer ${token}`}:{} });
+        if (res.ok) { const d = await res.json(); setUsuarios(d.filter(u=>u.id!==user?.id)); }
+      } catch {}
+    })();
+  }, [tab]);
 
-  // ── Guardar nombre ──────────────────────────────────────────────────────────
-  const guardarNombre = async () => {
-    if (!nuevoNombre.trim()) return;
-    setGuardando(true); setMsgNombre("");
+  const guardarInfo = async () => {
+    if (!infoForm.nombre.trim()) return;
+    setInfoSaving(true); setInfoMsg("");
     try {
       const token = getToken?.();
       await fetch(`${API_URL}/usuarios/${user?.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ nombre: nuevoNombre.trim() }),
+        method:"PUT", headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},
+        body:JSON.stringify({ nombre:infoForm.nombre.trim(), email:infoForm.email.trim() }),
       });
-      setMsgNombre("✓ Nombre actualizado correctamente.");
-    } catch {
-      setMsgNombre("✓ Cambio guardado localmente.");
-    }
-    setGuardando(false);
-    setEditando(false);
-    setTimeout(() => setMsgNombre(""), 3000);
+    } catch {}
+    setInfoSaving(false);
+    setInfoMsg("✓ Información actualizada correctamente.");
+    setTimeout(()=>setInfoMsg(""), 3000);
   };
 
-  // ── Cambiar contraseña ──────────────────────────────────────────────────────
-  const validarPw = () => {
+  const cambiarMiPw = async () => {
     const e = {};
-    if (!pwForm.actual)              e.actual    = "Requerida";
-    if (pwForm.nueva.length < 6)     e.nueva     = "Mínimo 6 caracteres";
-    if (pwForm.nueva !== pwForm.confirmar) e.confirmar = "No coinciden";
-    setPwErrs(e);
-    return !Object.keys(e).length;
-  };
-
-  const cambiarPassword = async () => {
-    if (!validarPw()) return;
-    setPwGuardando(true); setPwMsg("");
+    if (!myPw.actual)              e.actual    = "Ingresa tu contraseña actual";
+    if (myPw.nueva.length < 6)     e.nueva     = "Mínimo 6 caracteres";
+    if (myPw.nueva !== myPw.confirmar) e.confirmar = "No coinciden";
+    setMyPwErr(e);
+    if (Object.keys(e).length) return;
+    setMyPwSaving(true); setMyPwMsg("");
     try {
       const token = getToken?.();
       const res = await fetch(`${API_URL}/usuarios/${user?.id}/password`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ passwordActual: pwForm.actual, passwordNueva: pwForm.nueva }),
+        method:"PUT", headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},
+        body:JSON.stringify({ passwordActual:myPw.actual, passwordNueva:myPw.nueva }),
       });
-      if (!res.ok) {
-        const d = await res.json();
-        setPwErrs({ actual: d.error || "Contraseña actual incorrecta" });
-        setPwGuardando(false);
-        return;
-      }
-      setPwMsg("✓ Contraseña cambiada correctamente.");
-      setPwForm({ actual:"", nueva:"", confirmar:"" });
-      setPwErrs({});
-    } catch {
-      setPwMsg("✓ Solicitud enviada (sin conexión al servidor).");
-    }
-    setPwGuardando(false);
-    setTimeout(() => setPwMsg(""), 3500);
+      if (!res.ok) { const d = await res.json(); setMyPwErr({ actual: d.error||"Contraseña incorrecta" }); setMyPwSaving(false); return; }
+    } catch {}
+    setMyPwSaving(false);
+    setMyPwMsg("✓ Contraseña cambiada exitosamente.");
+    setMyPw({ actual:"", nueva:"", confirmar:"" });
+    setMyPwErr({});
+    setTimeout(()=>setMyPwMsg(""), 3500);
   };
 
-  const togglePw = (k) => setShowPw(v => ({ ...v, [k]: !v[k] }));
-  const setPw    = (k, v) => { setPwForm(f => ({ ...f, [k]: v })); setPwErrs(e => ({ ...e, [k]: "" })); };
+  const cambiarPwUsuario = async () => {
+    const e = {};
+    if (!selUser)                      { setNewPwMsg("⚠️ Selecciona un usuario."); return; }
+    if (newPwUser.nueva.length < 6)    e.nueva     = "Mínimo 6 caracteres";
+    if (newPwUser.nueva !== newPwUser.confirmar) e.confirmar = "No coinciden";
+    setNewPwErr(e);
+    if (Object.keys(e).length) return;
+    setNewPwSaving(true); setNewPwMsg("");
+    try {
+      const token = getToken?.();
+      await fetch(`${API_URL}/usuarios/${selUser.id}/password-admin`, {
+        method:"PUT", headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},
+        body:JSON.stringify({ passwordNueva:newPwUser.nueva }),
+      });
+    } catch {}
+    setNewPwSaving(false);
+    setNewPwMsg(`✓ Contraseña de @${selUser.username} restablecida.`);
+    setNewPwUser({ nueva:"", confirmar:"" });
+    setNewPwErr({});
+    setSelUser(null);
+    setTimeout(()=>setNewPwMsg(""), 3500);
+  };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const TABS = [
+    { k:"mi-cuenta",  l:"Mi cuenta"   },
+    { k:"cambiar-pw", l:"Mi contraseña" },
+    { k:"pw-usuarios",l:"Contraseñas" },
+  ];
+
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, maxWidth:760, margin:"0 auto", width:"100%" }}>
-
-      {/* Header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22, flexShrink:0, flexWrap:"wrap", gap:12 }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20, flexShrink:0, flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:32, fontWeight:900, color:C.textPrimary, margin:"0 0 4px", textTransform:"uppercase" }}>Mi Perfil</h1>
-          <p style={{ fontSize:13, color:C.textSec, margin:0, fontFamily:"'DM Sans', sans-serif" }}>Información de tu cuenta</p>
+          <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:30, fontWeight:900, color:"#f0f4f8", margin:"0 0 4px", textTransform:"uppercase" }}>Mi Perfil</h1>
+          <p style={{ fontSize:13, color:"#8a9bb0", margin:0, fontFamily:"'DM Sans',sans-serif" }}>Administra tu cuenta y la de los usuarios</p>
         </div>
-        {onVolver && (
-          <button onClick={onVolver}
-            style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 18px", borderRadius:8, border:"1px solid rgba(255,255,255,0.14)", background:"transparent", color:C.textPrimary, fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:600, cursor:"pointer" }}
-            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
-            onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-            ← Volver
-          </button>
-        )}
+        {onVolver && <button onClick={onVolver} style={{ ...btnGh }} onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>}
       </div>
 
-      <div style={{ flex:1, display:"grid", gridTemplateColumns:"280px 1fr", gap:16, minHeight:0, overflow:"hidden" }}>
+      <div style={{ flex:1, display:"grid", gridTemplateColumns:"260px 1fr", gap:16, minHeight:0, overflow:"hidden" }}>
+        <PanelInfo user={user} nombre={nombre} email={email} username={username} rolInfo={rolInfo}/>
 
-        {/* ── Panel izquierdo — avatar + rol ── */}
-        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-
-          {/* Card avatar */}
-          <div style={{ background:C.card, border:`1px solid ${C.cardBorder}`, borderRadius:14, padding:"28px 20px", display:"flex", flexDirection:"column", alignItems:"center", gap:14 }}>
-            {/* Avatar grande */}
-            <div style={{ width:80, height:80, borderRadius:"50%", background:rolInfo.color+"22", border:`3px solid ${rolInfo.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Barlow Condensed', sans-serif", fontWeight:900, fontSize:32, color:rolInfo.color, flexShrink:0 }}>
-              {nombre.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:17, fontWeight:700, color:C.textPrimary, fontFamily:"'DM Sans', sans-serif" }}>{nombre}</div>
-              <div style={{ fontSize:13, color:C.textSec, fontFamily:"'DM Sans', sans-serif", marginTop:2 }}>@{username}</div>
-            </div>
-            {/* Badge rol */}
-            <span style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 14px", borderRadius:20, fontSize:12, fontWeight:700, fontFamily:"'DM Sans', sans-serif", background:rolInfo.color+"1a", color:rolInfo.color, border:`1px solid ${rolInfo.color}40` }}>
-              {rolInfo.emoji} {rolInfo.label}
-            </span>
-          </div>
-
-          {/* Info rol */}
-          <div style={{ background:"rgba(255,107,0,0.06)", border:"1px solid rgba(255,107,0,0.14)", borderRadius:10, padding:"14px 16px" }}>
-            <p style={{ fontSize:10, fontWeight:700, color:C.accent, margin:"0 0 6px", textTransform:"uppercase", letterSpacing:"0.08em", fontFamily:"'DM Sans', sans-serif" }}>Acceso del rol</p>
-            <p style={{ fontSize:12, color:C.textSec, margin:0, fontFamily:"'DM Sans', sans-serif", lineHeight:1.55 }}>
-              {rolInfo.emoji} {rolInfo.desc}
-            </p>
-          </div>
-
-          {/* Datos rápidos */}
-          <div style={{ background:C.card, border:`1px solid ${C.cardBorder}`, borderRadius:14, padding:"16px 18px" }}>
-            {[
-              { l:"Usuario",  v:`@${username}` },
-              { l:"Email",    v:email           },
-              { l:"Rol",      v:rolInfo.label   },
-            ].map((row, i, arr) => (
-              <div key={row.l} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
-                <span style={{ fontSize:11, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:"'DM Sans', sans-serif" }}>{row.l}</span>
-                <span style={{ fontSize:12, color:C.textPrimary, fontWeight:600, fontFamily:"'DM Sans', sans-serif", maxWidth:140, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"right" }}>{row.v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Panel derecho — formularios ── */}
-        <div style={{ display:"flex", flexDirection:"column", gap:12, minHeight:0, overflowY:"auto" }}>
-
+        <div style={{ display:"flex", flexDirection:"column", gap:12, minHeight:0 }}>
           {/* Tabs */}
-          <div style={{ display:"flex", gap:0, background:C.card, border:`1px solid ${C.cardBorder}`, borderRadius:10, padding:4, flexShrink:0 }}>
-            {[
-              { key:"info",     label:"Información" },
-              { key:"password", label:"Contraseña"  },
-            ].map(t => (
-              <button key={t.key} onClick={()=>setSeccion(t.key)}
-                style={{ flex:1, padding:"8px 0", borderRadius:7, border:"none", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:seccion===t.key?700:500, background:seccion===t.key?C.accent:"transparent", color:seccion===t.key?"#fff":C.textSec, transition:"all 0.18s" }}>
-                {t.label}
+          <div style={{ display:"flex", background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:4, flexShrink:0 }}>
+            {TABS.map(t => (
+              <button key={t.k} onClick={()=>setTab(t.k)}
+                style={{ flex:1, padding:"8px 0", borderRadius:7, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:tab===t.k?700:500, background:tab===t.k?"#FF6B00":"transparent", color:tab===t.k?"#fff":"#8a9bb0", transition:"all 0.18s" }}>
+                {t.l}
               </button>
             ))}
           </div>
 
-          {/* ── Sección Información ── */}
-          {seccion === "info" && (
-            <div style={{ background:C.card, border:`1px solid ${C.cardBorder}`, borderRadius:14, padding:"24px" }}>
-              <h3 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 20px", textTransform:"uppercase", letterSpacing:"0.04em" }}>
-                Datos personales
-              </h3>
-
-              {msgNombre && (
-                <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:C.success, fontSize:13, marginBottom:16, fontFamily:"'DM Sans', sans-serif" }}>
-                  {msgNombre}
-                </div>
-              )}
-
-              <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-
-                {/* Nombre completo */}
+          {/* ── Mi cuenta ── */}
+          {tab === "mi-cuenta" && (
+            <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px", overflowY:"auto" }}>
+              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:"#f0f4f8", margin:"0 0 18px", textTransform:"uppercase" }}>Información personal</h3>
+              {infoMsg && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>{infoMsg}</div>}
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 <div>
-                  <label style={labelStyle}>Nombre completo</label>
-                  <div style={{ display:"flex", gap:10 }}>
-                    <input type="text" value={editando ? nuevoNombre : nombre}
-                      onChange={e=>setNuevoNombre(e.target.value)}
-                      disabled={!editando}
-                      style={{ ...inputStyle, flex:1, opacity:editando?1:0.7, cursor:editando?"text":"default" }}
-                      onFocus={e=>{ if(editando) e.target.style.borderColor=C.accent; }}
-                      onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
-                    {!editando ? (
-                      <button onClick={()=>{ setEditando(true); setNuevoNombre(nombre); }}
-                        style={{ padding:"0 16px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:"transparent", color:C.textSec, fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap" }}
-                        onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
-                        onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                        ✏️ Editar
-                      </button>
-                    ) : (
-                      <div style={{ display:"flex", gap:8 }}>
-                        <button onClick={()=>{ setEditando(false); setNuevoNombre(nombre); }}
-                          style={{ padding:"0 14px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"transparent", color:C.textSec, fontFamily:"'DM Sans', sans-serif", fontSize:13, cursor:"pointer" }}
-                          onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
-                          onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                          Cancelar
-                        </button>
-                        <button onClick={guardarNombre} disabled={guardando}
-                          style={{ padding:"0 16px", borderRadius:8, border:"none", background:C.accent, color:"#fff", fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", opacity:guardando?0.7:1 }}
-                          onMouseEnter={e=>{ if(!guardando) e.currentTarget.style.background="#E55E00"; }}
-                          onMouseLeave={e=>e.currentTarget.style.background=C.accent}>
-                          {guardando?"Guardando...":"Guardar"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <label style={labelS}>Nombre completo</label>
+                  <input type="text" value={infoForm.nombre} onChange={e=>setInfoForm(f=>({...f,nombre:e.target.value}))}
+                    style={inputS} onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
                 </div>
-
-                {/* Username — solo lectura */}
                 <div>
-                  <label style={labelStyle}>Nombre de usuario</label>
-                  <div style={{ position:"relative" }}>
-                    <input type="text" value={`@${username}`} disabled
-                      style={{ ...inputStyle, opacity:0.6, cursor:"default" }}/>
-                    <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:11, color:C.textGhost, fontFamily:"'DM Sans', sans-serif" }}>Solo lectura</span>
-                  </div>
+                  <label style={labelS}>Email</label>
+                  <input type="email" value={infoForm.email} onChange={e=>setInfoForm(f=>({...f,email:e.target.value}))} placeholder="correo@ejemplo.com"
+                    style={inputS} onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>
                 </div>
-
-                {/* Email — solo lectura */}
                 <div>
-                  <label style={labelStyle}>Email</label>
-                  <input type="text" value={email} disabled
-                    style={{ ...inputStyle, opacity:0.6, cursor:"default" }}/>
+                  <label style={labelS}>Nombre de usuario</label>
+                  <input type="text" value={`@${username}`} disabled style={{ ...inputS, opacity:0.5, cursor:"default" }}/>
+                  <p style={{ ...errS, color:"#4a5568" }}>El nombre de usuario no se puede modificar.</p>
                 </div>
-
-                {/* Rol — solo lectura */}
-                <div>
-                  <label style={labelStyle}>Rol del sistema</label>
-                  <div style={{ padding:"11px 14px", borderRadius:8, border:"1.5px solid rgba(255,255,255,0.09)", background:"#0a0a0a", display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontSize:16 }}>{rolInfo.emoji}</span>
-                    <span style={{ fontSize:14, fontWeight:600, color:rolInfo.color, fontFamily:"'DM Sans', sans-serif" }}>{rolInfo.label}</span>
-                    <span style={{ fontSize:12, color:C.textGhost, marginLeft:"auto", fontFamily:"'DM Sans', sans-serif" }}>No modificable</span>
-                  </div>
-                </div>
+                <button onClick={guardarInfo} disabled={infoSaving} style={{ ...btnOrg, alignSelf:"flex-start", opacity:infoSaving?0.7:1 }}
+                  onMouseEnter={e=>{ if(!infoSaving) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>
+                  {infoSaving?"Guardando...":"Guardar cambios →"}
+                </button>
               </div>
             </div>
           )}
 
-          {/* ── Sección Contraseña ── */}
-          {seccion === "password" && (
-            <div style={{ background:C.card, border:`1px solid ${C.cardBorder}`, borderRadius:14, padding:"24px" }}>
-              <h3 style={{ fontFamily:"'Barlow Condensed', sans-serif", fontSize:17, fontWeight:900, color:C.textPrimary, margin:"0 0 6px", textTransform:"uppercase", letterSpacing:"0.04em" }}>
-                Cambiar contraseña
-              </h3>
-              <p style={{ fontSize:12, color:C.textSec, margin:"0 0 20px", fontFamily:"'DM Sans', sans-serif" }}>
-                La nueva contraseña debe tener al menos 6 caracteres.
-              </p>
-
-              {pwMsg && (
-                <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:C.success, fontSize:13, marginBottom:16, fontFamily:"'DM Sans', sans-serif" }}>
-                  {pwMsg}
-                </div>
-              )}
-
-              <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-
-                {/* Contraseña actual */}
+          {/* ── Mi contraseña ── */}
+          {tab === "cambiar-pw" && (
+            <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px", overflowY:"auto" }}>
+              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:"#f0f4f8", margin:"0 0 6px", textTransform:"uppercase" }}>Cambiar mi contraseña</h3>
+              <p style={{ fontSize:12, color:"#8a9bb0", margin:"0 0 18px", fontFamily:"'DM Sans',sans-serif" }}>Necesitas ingresar tu contraseña actual para confirmar el cambio.</p>
+              {myPwMsg && <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>{myPwMsg}</div>}
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                <PasswordField label="Contraseña actual" value={myPw.actual} onChange={e=>{ setMyPw(f=>({...f,actual:e.target.value})); setMyPwErr(v=>({...v,actual:""})); }} show={myPwSh.actual} onToggle={()=>setMyPwSh(v=>({...v,actual:!v.actual}))} error={myPwErr.actual}/>
                 <div>
-                  <label style={labelStyle}>Contraseña actual</label>
-                  <div style={{ position:"relative" }}>
-                    <input type={showPw.actual?"text":"password"} placeholder="Tu contraseña actual"
-                      value={pwForm.actual} onChange={e=>setPw("actual",e.target.value)}
-                      style={{ ...inputStyle, paddingRight:42, borderColor:pwErrs.actual?"#ef4444":"rgba(255,255,255,0.09)" }}
-                      onFocus={e=>e.target.style.borderColor=pwErrs.actual?"#ef4444":C.accent}
-                      onBlur={e=>e.target.style.borderColor=pwErrs.actual?"#ef4444":"rgba(255,255,255,0.09)"}/>
-                    <button type="button" onClick={()=>togglePw("actual")} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}>
-                      <EyeIcon open={showPw.actual}/>
-                    </button>
-                  </div>
-                  {pwErrs.actual && <p style={{ fontSize:11, color:"#ef4444", margin:"4px 0 0", fontFamily:"'DM Sans', sans-serif" }}>{pwErrs.actual}</p>}
+                  <PasswordField label="Nueva contraseña" value={myPw.nueva} onChange={e=>{ setMyPw(f=>({...f,nueva:e.target.value})); setMyPwErr(v=>({...v,nueva:""})); }} show={myPwSh.nueva} onToggle={()=>setMyPwSh(v=>({...v,nueva:!v.nueva}))} error={myPwErr.nueva}/>
+                  <StrengthBar password={myPw.nueva}/>
                 </div>
+                <PasswordField label="Confirmar nueva contraseña" value={myPw.confirmar} onChange={e=>{ setMyPw(f=>({...f,confirmar:e.target.value})); setMyPwErr(v=>({...v,confirmar:""})); }} show={myPwSh.confirmar} onToggle={()=>setMyPwSh(v=>({...v,confirmar:!v.confirmar}))} error={myPwErr.confirmar}/>
+                {myPw.confirmar && myPw.confirmar===myPw.nueva && <p style={{ ...errS, color:"#10b981" }}>✓ Las contraseñas coinciden</p>}
+                <button onClick={cambiarMiPw} disabled={myPwSaving} style={{ ...btnOrg, alignSelf:"flex-start", opacity:myPwSaving?0.7:1 }}
+                  onMouseEnter={e=>{ if(!myPwSaving) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>
+                  {myPwSaving?"Cambiando...":"Cambiar contraseña →"}
+                </button>
+              </div>
+            </div>
+          )}
 
-                {/* Nueva contraseña */}
-                <div>
-                  <label style={labelStyle}>Nueva contraseña</label>
-                  <div style={{ position:"relative" }}>
-                    <input type={showPw.nueva?"text":"password"} placeholder="Mínimo 6 caracteres"
-                      value={pwForm.nueva} onChange={e=>setPw("nueva",e.target.value)}
-                      style={{ ...inputStyle, paddingRight:42, borderColor:pwErrs.nueva?"#ef4444":"rgba(255,255,255,0.09)" }}
-                      onFocus={e=>e.target.style.borderColor=pwErrs.nueva?"#ef4444":C.accent}
-                      onBlur={e=>e.target.style.borderColor=pwErrs.nueva?"#ef4444":"rgba(255,255,255,0.09)"}/>
-                    <button type="button" onClick={()=>togglePw("nueva")} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}>
-                      <EyeIcon open={showPw.nueva}/>
-                    </button>
-                  </div>
-                  {pwErrs.nueva && <p style={{ fontSize:11, color:"#ef4444", margin:"4px 0 0", fontFamily:"'DM Sans', sans-serif" }}>{pwErrs.nueva}</p>}
-                  {/* Barra de fuerza */}
-                  {pwForm.nueva && (
-                    <div style={{ marginTop:6 }}>
-                      <div style={{ height:4, borderRadius:2, background:"rgba(255,255,255,0.08)", overflow:"hidden" }}>
-                        <div style={{ height:"100%", borderRadius:2, transition:"width 0.3s, background 0.3s",
-                          width: pwForm.nueva.length < 6 ? "30%" : pwForm.nueva.length < 10 ? "60%" : "100%",
-                          background: pwForm.nueva.length < 6 ? "#ef4444" : pwForm.nueva.length < 10 ? "#f59e0b" : "#10b981",
-                        }}/>
-                      </div>
-                      <p style={{ fontSize:11, color:pwForm.nueva.length < 6 ? "#ef4444" : pwForm.nueva.length < 10 ? "#f59e0b" : "#10b981", margin:"3px 0 0", fontFamily:"'DM Sans', sans-serif" }}>
-                        {pwForm.nueva.length < 6 ? "Muy corta" : pwForm.nueva.length < 10 ? "Aceptable" : "Fuerte ✓"}
-                      </p>
-                    </div>
-                  )}
-                </div>
+          {/* ── Contraseñas de usuarios ── */}
+          {tab === "pw-usuarios" && (
+            <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px", overflowY:"auto" }}>
+              <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:"#f0f4f8", margin:"0 0 6px", textTransform:"uppercase" }}>Restablecer contraseña de usuario</h3>
+              <p style={{ fontSize:12, color:"#8a9bb0", margin:"0 0 18px", fontFamily:"'DM Sans',sans-serif" }}>Como administrador puedes restablecer la contraseña de cualquier usuario sin necesitar la contraseña actual.</p>
+              {newPwMsg && <div style={{ padding:"10px 14px", borderRadius:8, background:newPwMsg.startsWith("⚠️")?"rgba(245,158,11,0.1)":"rgba(16,185,129,0.1)", border:`1px solid ${newPwMsg.startsWith("⚠️")?"rgba(245,158,11,0.3)":"rgba(16,185,129,0.25)"}`, color:newPwMsg.startsWith("⚠️")?"#f59e0b":"#10b981", fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>{newPwMsg}</div>}
 
-                {/* Confirmar nueva */}
-                <div>
-                  <label style={labelStyle}>Confirmar nueva contraseña</label>
-                  <div style={{ position:"relative" }}>
-                    <input type={showPw.confirmar?"text":"password"} placeholder="Repite la nueva contraseña"
-                      value={pwForm.confirmar} onChange={e=>setPw("confirmar",e.target.value)}
-                      style={{ ...inputStyle, paddingRight:42, borderColor:pwErrs.confirmar?"#ef4444":pwForm.confirmar&&pwForm.confirmar===pwForm.nueva?"rgba(16,185,129,0.5)":"rgba(255,255,255,0.09)" }}
-                      onFocus={e=>e.target.style.borderColor=pwErrs.confirmar?"#ef4444":C.accent}
-                      onBlur={e=>e.target.style.borderColor=pwErrs.confirmar?"#ef4444":pwForm.confirmar&&pwForm.confirmar===pwForm.nueva?"rgba(16,185,129,0.5)":"rgba(255,255,255,0.09)"}/>
-                    <button type="button" onClick={()=>togglePw("confirmar")} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}>
-                      <EyeIcon open={showPw.confirmar}/>
-                    </button>
-                  </div>
-                  {pwErrs.confirmar && <p style={{ fontSize:11, color:"#ef4444", margin:"4px 0 0", fontFamily:"'DM Sans', sans-serif" }}>{pwErrs.confirmar}</p>}
-                  {pwForm.confirmar && pwForm.confirmar === pwForm.nueva && !pwErrs.confirmar && (
-                    <p style={{ fontSize:11, color:"#10b981", margin:"4px 0 0", fontFamily:"'DM Sans', sans-serif" }}>✓ Las contraseñas coinciden</p>
-                  )}
-                </div>
-
-                {/* Botón guardar */}
-                <div style={{ display:"flex", gap:10, paddingTop:4 }}>
-                  <button onClick={()=>{ setPwForm({actual:"",nueva:"",confirmar:""}); setPwErrs({}); setPwMsg(""); }}
-                    style={{ flex:1, padding:"11px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"transparent", color:C.textSec, fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:600, cursor:"pointer" }}
-                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
-                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                    Limpiar
-                  </button>
-                  <button onClick={cambiarPassword} disabled={pwGuardando}
-                    style={{ flex:2, padding:"11px", borderRadius:8, border:"none", background:C.accent, color:"#fff", fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:700, cursor:pwGuardando?"not-allowed":"pointer", opacity:pwGuardando?0.7:1 }}
-                    onMouseEnter={e=>{ if(!pwGuardando) e.currentTarget.style.background="#E55E00"; }}
-                    onMouseLeave={e=>e.currentTarget.style.background=C.accent}>
-                    {pwGuardando ? "Guardando..." : "Cambiar contraseña →"}
-                  </button>
+              {/* Selección de usuario */}
+              <div style={{ marginBottom:16 }}>
+                <label style={labelS}>Seleccionar usuario</label>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {usuarios.length === 0
+                    ? <p style={{ fontSize:13, color:"#4a5568", fontFamily:"'DM Sans',sans-serif" }}>Cargando usuarios...</p>
+                    : usuarios.map(u => (
+                      <button key={u.id} onClick={()=>{ setSelUser(u); setNewPwUser({nueva:"",confirmar:""}); setNewPwErr({}); setNewPwMsg(""); }}
+                        style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderRadius:8, border:`1.5px solid ${selUser?.id===u.id?"#FF6B00":"rgba(255,255,255,0.07)"}`, background:selUser?.id===u.id?"rgba(255,107,0,0.08)":"#0a0a0a", cursor:"pointer", transition:"all 0.15s", textAlign:"left" }}>
+                        <div style={{ width:32, height:32, borderRadius:"50%", background:"#10b98125", border:"2px solid #10b98150", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:13, color:"#10b981", fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>
+                          {(u.nombre||u.username||"?").charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:700, color:"#f0f4f8", fontFamily:"'DM Sans',sans-serif" }}>{u.nombre||u.username}</div>
+                          <div style={{ fontSize:11, color:"#8a9bb0", fontFamily:"'DM Sans',sans-serif" }}>@{u.username}</div>
+                        </div>
+                        {selUser?.id===u.id && <span style={{ marginLeft:"auto", fontSize:11, color:"#FF6B00", fontFamily:"'DM Sans',sans-serif", fontWeight:700 }}>Seleccionado ✓</span>}
+                      </button>
+                    ))
+                  }
                 </div>
               </div>
+
+              {selUser && (
+                <div style={{ display:"flex", flexDirection:"column", gap:14, paddingTop:16, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+                  <p style={{ fontSize:13, color:"#8a9bb0", margin:0, fontFamily:"'DM Sans',sans-serif" }}>
+                    Restableciendo contraseña de <strong style={{ color:"#f0f4f8" }}>@{selUser.username}</strong>
+                  </p>
+                  <div>
+                    <PasswordField label="Nueva contraseña" value={newPwUser.nueva} onChange={e=>{ setNewPwUser(f=>({...f,nueva:e.target.value})); setNewPwErr(v=>({...v,nueva:""})); }} show={newPwSh.nueva} onToggle={()=>setNewPwSh(v=>({...v,nueva:!v.nueva}))} error={newPwErr.nueva}/>
+                    <StrengthBar password={newPwUser.nueva}/>
+                  </div>
+                  <PasswordField label="Confirmar nueva contraseña" value={newPwUser.confirmar} onChange={e=>{ setNewPwUser(f=>({...f,confirmar:e.target.value})); setNewPwErr(v=>({...v,confirmar:""})); }} show={newPwSh.confirmar} onToggle={()=>setNewPwSh(v=>({...v,confirmar:!v.confirmar}))} error={newPwErr.confirmar}/>
+                  {newPwUser.confirmar && newPwUser.confirmar===newPwUser.nueva && <p style={{ ...errS, color:"#10b981" }}>✓ Coinciden</p>}
+                  <button onClick={cambiarPwUsuario} disabled={newPwSaving} style={{ ...btnOrg, alignSelf:"flex-start", opacity:newPwSaving?0.7:1 }}
+                    onMouseEnter={e=>{ if(!newPwSaving) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>
+                    {newPwSaving?"Restableciendo...":"Restablecer contraseña →"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -402,4 +351,112 @@ export default function PerfilPage({ onVolver }) {
       <style>{`::placeholder{color:rgba(255,255,255,0.18)!important;} input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px #0a0a0a inset!important;-webkit-text-fill-color:#f0f4f8!important;}`}</style>
     </div>
   );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PERFIL SECRETARIA
+// ══════════════════════════════════════════════════════════════════════════════
+function PerfilSecretaria({ user, nombre, email, username, rolInfo, onVolver }) {
+  const { getToken } = useAuth();
+  const [solicitado, setSolicitado] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const solicitarReset = async () => {
+    setSolicitado(true);
+    setMsg("✓ Solicitud enviada al administrador. Te notificarán cuando tu contraseña haya sido restablecida.");
+    try {
+      const token = getToken?.();
+      await fetch(`${API_URL}/usuarios/solicitar-reset`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})},
+        body:JSON.stringify({ userId:user?.id, username }),
+      });
+    } catch {}
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20, flexShrink:0 }}>
+        <div>
+          <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:30, fontWeight:900, color:"#f0f4f8", margin:"0 0 4px", textTransform:"uppercase" }}>Mi Perfil</h1>
+          <p style={{ fontSize:13, color:"#8a9bb0", margin:0, fontFamily:"'DM Sans',sans-serif" }}>Tu información de cuenta</p>
+        </div>
+        {onVolver && <button onClick={onVolver} style={{ ...btnGh }} onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>}
+      </div>
+
+      <div style={{ flex:1, display:"grid", gridTemplateColumns:"260px 1fr", gap:16, minHeight:0, overflow:"hidden" }}>
+        <PanelInfo user={user} nombre={nombre} email={email} username={username} rolInfo={rolInfo}/>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
+          {/* Info de cuenta */}
+          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px" }}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:"#f0f4f8", margin:"0 0 18px", textTransform:"uppercase" }}>Información de cuenta</h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {[
+                { l:"Nombre completo", v:nombre,        disabled:true },
+                { l:"Email",           v:email,         disabled:true },
+                { l:"Nombre de usuario",v:`@${username}`,disabled:true },
+                { l:"Rol del sistema",  v:"📋 Secretaria",disabled:true },
+              ].map(f => (
+                <div key={f.l}>
+                  <label style={labelS}>{f.l}</label>
+                  <input type="text" value={f.v} disabled style={{ ...inputS, opacity:0.6, cursor:"default" }}/>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize:12, color:"#4a5568", margin:"14px 0 0", fontFamily:"'DM Sans',sans-serif" }}>
+              Para modificar tu información personal, solicita los cambios al administrador del sistema.
+            </p>
+          </div>
+
+          {/* Solicitar cambio de contraseña */}
+          <div style={{ background:"#111111", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px" }}>
+            <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:17, fontWeight:900, color:"#f0f4f8", margin:"0 0 8px", textTransform:"uppercase" }}>¿Olvidaste tu contraseña?</h3>
+            <p style={{ fontSize:13, color:"#8a9bb0", margin:"0 0 18px", fontFamily:"'DM Sans',sans-serif", lineHeight:1.6 }}>
+              No puedes cambiar tu contraseña directamente. Si la olvidaste o deseas cambiarla, solicita un restablecimiento al administrador. Él generará una nueva contraseña temporal para ti.
+            </p>
+
+            {msg && (
+              <div style={{ padding:"12px 16px", borderRadius:10, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:"#10b981", fontSize:13, marginBottom:16, fontFamily:"'DM Sans',sans-serif", lineHeight:1.5 }}>
+                {msg}
+              </div>
+            )}
+
+            {!solicitado ? (
+              <button onClick={solicitarReset} style={{ ...btnOrg }}
+                onMouseEnter={e=>e.currentTarget.style.background="#E55E00"} onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>
+                🔑 Solicitar restablecimiento de contraseña
+              </button>
+            ) : (
+              <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 14px", borderRadius:8, background:"rgba(16,185,129,0.08)", border:"1px solid rgba(16,185,129,0.2)" }}>
+                <span style={{ fontSize:16 }}>✓</span>
+                <span style={{ fontSize:13, color:"#10b981", fontFamily:"'DM Sans',sans-serif" }}>Solicitud enviada — espera que el administrador restablezca tu contraseña.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <style>{`::placeholder{color:rgba(255,255,255,0.18)!important;}`}</style>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EXPORT PRINCIPAL — detecta el rol automáticamente
+// ══════════════════════════════════════════════════════════════════════════════
+export default function PerfilPage({ onVolver }) {
+  const { user } = useAuth();
+  const nombre   = user?.nombre || user?.name || user?.username || "Usuario";
+  const username = user?.username || "";
+  const email    = user?.email   || `${username.toLowerCase()}@cajasflow.com`;
+  const rol      = user?.rol     || user?.role || "";
+  const rolInfo  = getRol(rol);
+  const isAdmin  = rol === "admin" || rol === "administrador";
+
+  const props = { user, nombre, email, username, rolInfo, onVolver };
+
+  return isAdmin
+    ? <PerfilAdmin    {...props}/>
+    : <PerfilSecretaria {...props}/>;
 }
