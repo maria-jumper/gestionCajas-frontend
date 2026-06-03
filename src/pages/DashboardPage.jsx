@@ -6,28 +6,29 @@ import GestionUsuarios from "./GestionUsuariosPage";
 import PerfilPage from "./PerfilPage";
 import ConfiguracionPage from "./ConfiguracionPage";
 
-// ── Paleta reactiva: lee CSS vars que inyecta ThemeContext ────────────────────
+// ── Paleta reactiva: valores calculados desde isDark → fuerza re-render real ──
 function useC() {
-  useTheme(); // suscribirse a cambios de tema
+  const { isDark } = useTheme();
   return {
-    sidebarBg:    "var(--cf-sidebar)",
-    sidebarBorder:"var(--cf-border2)",
-    headerBg:     "var(--cf-header)",
-    headerBorder: "var(--cf-border2)",
-    mainBg:       "var(--cf-bg)",
-    cardBg:       "var(--cf-card)",
-    cardBorder:   "var(--cf-border)",
+    sidebarBg:    "#0d0d0d",
+    sidebarBorder:"rgba(255,255,255,0.06)",
+    headerBg:     isDark ? "#0d0d0d"  : "#ffffff",
+    headerBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)",
+    mainBg:       isDark ? "#0d0d0d"  : "#f0f2f5",
+    cardBg:       isDark ? "#111111"  : "#ffffff",
+    cardBorder:   isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.09)",
     accent:       "#FF6B00",
     accentDim:    "rgba(255,107,0,0.14)",
-    navText:      "var(--cf-nav)",
-    textPrimary:  "var(--cf-text1)",
-    textSec:      "var(--cf-text2)",
-    textGhost:    "var(--cf-text3)",
-    inputBg:      "var(--cf-input)",
-    hover:        "var(--cf-hover)",
+    navText:      "rgba(255,255,255,0.45)",
+    textPrimary:  isDark ? "#f0f4f8"  : "#111111",
+    textSec:      isDark ? "#8a9bb0"  : "#4a5568",
+    textGhost:    isDark ? "#4e6070"  : "#9aa3ae",
+    inputBg:      isDark ? "#0a0a0a"  : "#f9f9f9",
+    hover:        isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
     danger:       "#ef4444",
     success:      "#10b981",
     warning:      "#f59e0b",
+    isDark,
   };
 }
 

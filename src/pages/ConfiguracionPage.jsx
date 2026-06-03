@@ -1,28 +1,32 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 // ── Paleta dinámica según tema ────────────────────────────────────────────────
 function useC() {
   const { isDark } = useTheme();
   return {
-    card:        isDark ? "#111111" : "#ffffff",
-    cardBorder:  isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)",
-    cardBg2:     isDark ? "#0a0a0a" : "#f5f5f5",
+    bg:          isDark ? "#0d0d0d"  : "#f0f2f5",
+    card:        isDark ? "#111111"  : "#ffffff",
+    cardBorder:  isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.09)",
+    cardBg2:     isDark ? "#1a1a1a"  : "#f5f5f5",
     accent:      "#FF6B00",
-    textPrimary: isDark ? "#f0f4f8" : "#111111",
-    textSec:     isDark ? "#8a9bb0" : "#555",
-    textGhost:   isDark ? "#4a5568" : "#999",
-    inputBg:     isDark ? "#0a0a0a" : "#f9f9f9",
+    textPrimary: isDark ? "#f0f4f8"  : "#111111",
+    textSec:     isDark ? "#8a9bb0"  : "#4a5568",
+    textGhost:   isDark ? "#4a5568"  : "#9aa3ae",
+    inputBg:     isDark ? "#0a0a0a"  : "#f9f9f9",
     inputBorder: isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.15)",
     sectionBg:   isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+    toggleOff:   isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)",
     isDark,
   };
 }
 
-function Toggle({ value, onChange, color="#FF6B00" }) {
+function Toggle({ value, onChange, color="#FF6B00", offColor }) {
+  // offColor se pasa desde SettingRow que ya tiene acceso a useC()
+  const bg = value ? color : (offColor || "rgba(0,0,0,0.15)");
   return (
     <button type="button" onClick={()=>onChange(!value)}
-      style={{ width:44, height:24, borderRadius:12, background:value?color:"rgba(255,255,255,0.12)", border:"none", cursor:"pointer", position:"relative", flexShrink:0, transition:"background 0.25s" }}>
+      style={{ width:44, height:24, borderRadius:12, background:bg, border:"none", cursor:"pointer", position:"relative", flexShrink:0, transition:"background 0.25s" }}>
       <div style={{ width:18, height:18, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:value?23:3, transition:"left 0.25s", boxShadow:"0 1px 4px rgba(0,0,0,0.3)" }}/>
     </button>
   );
@@ -30,6 +34,10 @@ function Toggle({ value, onChange, color="#FF6B00" }) {
 
 function SettingRow({ icon, title, desc, children }) {
   const C = useC();
+  // Clonar el hijo (Toggle) pasándole offColor dinámico
+  const child = React.isValidElement(children)
+    ? React.cloneElement(children, { offColor: C.toggleOff })
+    : children;
   return (
     <div style={{ display:"flex", alignItems:"center", gap:16, padding:"14px 18px", borderRadius:10, background:C.sectionBg, border:`1px solid ${C.cardBorder}` }}>
       <div style={{ width:38, height:38, borderRadius:9, background:C.cardBg2, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>
@@ -40,7 +48,7 @@ function SettingRow({ icon, title, desc, children }) {
         <div style={{ fontSize:12, color:C.textSec, fontFamily:"'DM Sans',sans-serif", marginTop:1 }}>{desc}</div>
       </div>
       <div style={{ flexShrink:0 }}>
-        {children}
+        {child}
       </div>
     </div>
   );
@@ -97,7 +105,7 @@ export default function ConfiguracionPage({ onVolver }) {
   };
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0 }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", minHeight:0, background:C.bg, transition:"background 0.3s" }}>
 
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22, flexShrink:0, flexWrap:"wrap", gap:12 }}>
