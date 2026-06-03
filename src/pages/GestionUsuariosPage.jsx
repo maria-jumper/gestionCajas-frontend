@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
-const C = {
-  card:        "#111111",
-  cardBorder:  "rgba(255,255,255,0.08)",
-  accent:      "#FF6B00",
-  textPrimary: "#f0f4f8",
-  textSec:     "#8a9bb0",
-  textGhost:   "#4a5568",
-  danger:      "#ef4444",
-  success:     "#10b981",
-  warning:     "#f59e0b",
-};
+function useC() {
+  const { isDark } = useTheme();
+  return {
+    card:        isDark ? "#161616" : "#ffffff",
+    cardBorder:  isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+    textPrimary: isDark ? "#f0f4f8" : "#1a1d23",
+    textSec:     isDark ? "#8a9bb0" : "#5a6478",
+    textGhost:   isDark ? "#4a5568" : "#9aa5b4",
+    inputBg:     isDark ? "#0a0a0a" : "#f9fafb",
+    inputBorder: isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.12)",
+    hover:       isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+    accent:      "#FF6B00",
+    danger:      "#ef4444",
+    success:     "#10b981",
+    warning:     "#f59e0b",
+    isDark,
+  };
+}
+
+
 
 const MODULOS_DISPONIBLES = [
   { key:"entregas",   label:"Entregas",   emoji:"📦", desc:"Registrar y gestionar entregas" },
@@ -26,11 +36,12 @@ const ROLES_ALL = [
   { value:"secretaria", label:"Secretaria",    color:"#10b981", emoji:"📋" },
 ];
 
-const inputS  = { width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, border:"1.5px solid rgba(255,255,255,0.09)", background:"#0a0a0a", color:"#f0f4f8", fontSize:14, outline:"none", fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s" };
-const labelS  = { display:"block", fontSize:11, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" };
-const errS    = { fontSize:11, color:C.danger, margin:"4px 0 0", fontFamily:"'DM Sans',sans-serif" };
-const btnOrg  = { display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:"none", background:C.accent, color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap" };
-const btnGh   = { ...btnOrg, background:"transparent", color:C.textPrimary, border:"1px solid rgba(255,255,255,0.14)" };
+// Estilos reactivos al tema — se pasan C como arg o se usan dentro del componente
+const errS   = (C) => ({ fontSize:11, color:C.danger,  margin:"4px 0 0", fontFamily:"'DM Sans',sans-serif" });
+const labelS = (C) => ({ display:"block", fontSize:11, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" });
+const inputS = (C) => ({ width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary, fontSize:14, outline:"none", fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s" });
+const btnOrg = (C) => ({ display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:"none", background:C.accent, color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap" });
+const btnGh  = (C) => ({ display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:"transparent", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap" });
 
 function RolBadge({ rol }) {
   const r = ROLES_ALL.find(x => x.value === rol?.toLowerCase()) || ROLES_ALL[1];
@@ -144,9 +155,9 @@ function ModalEditar({ usuario, onGuardar, onCerrar }) {
         {msg && <div style={{ padding:"9px 14px", borderRadius:8, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.25)", color:C.success, fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>{msg}</div>}
         {tab==="info" && (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <div><label style={labelS}>Nombre completo</label><input type="text" value={form.nombre} onChange={e=>{setForm(f=>({...f,nombre:e.target.value}));setErrs({});}} style={{ ...inputS, borderColor:errs.nombre?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>{errs.nombre&&<p style={errS}>{errs.nombre}</p>}</div>
-            <div><label style={labelS}>Email</label><input type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="correo@ejemplo.com" style={inputS} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>          </div>
-            <div><label style={labelS}>Usuario</label><input type="text" value={`@${usuario.username}`} disabled style={{ ...inputS, opacity:0.5, cursor:"default" }}/><p style={{ ...errS, color:C.textGhost }}>No se puede cambiar.</p></div>
+            <div><label style={_labelS}>Nombre completo</label><input type="text" value={form.nombre} onChange={e=>{setForm(f=>({...f,nombre:e.target.value}));setErrs({});}} style={{ ...inputS, borderColor:errs.nombre?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>{errs.nombre&&<p style={_errS}>{errs.nombre}</p>}</div>
+            <div><label style={_labelS}>Email</label><input type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="correo@ejemplo.com" style={_inputS} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/>          </div>
+            <div><label style={_labelS}>Usuario</label><input type="text" value={`@${usuario.username}`} disabled style={{ ...inputS, opacity:0.5, cursor:"default" }}/><p style={{ ...errS, color:C.textGhost }}>No se puede cambiar.</p></div>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={onCerrar} style={{ ...btnGh, flex:1 }} onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>Cancelar</button>
               <button onClick={guardarInfo} style={{ ...btnOrg, flex:2 }} onMouseEnter={e=>e.currentTarget.style.background="#E55E00"} onMouseLeave={e=>e.currentTarget.style.background=C.accent}>Guardar →</button>
@@ -155,8 +166,8 @@ function ModalEditar({ usuario, onGuardar, onCerrar }) {
         )}
         {tab==="password" && (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <div><label style={labelS}>Nueva contraseña</label><div style={{ position:"relative" }}><input type={showPw.nueva?"text":"password"} value={pwF.nueva} onChange={e=>{setPwF(f=>({...f,nueva:e.target.value}));setErrs(v=>({...v,nueva:""}));}} placeholder="Mínimo 6 caracteres" style={{ ...inputS, paddingRight:42, borderColor:errs.nueva?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.nueva?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowPw(v=>({...v,nueva:!v.nueva}))} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showPw.nueva}/></button></div>{errs.nueva&&<p style={errS}>{errs.nueva}</p>}</div>
-            <div><label style={labelS}>Confirmar contraseña</label><div style={{ position:"relative" }}><input type={showPw.confirmar?"text":"password"} value={pwF.confirmar} onChange={e=>{setPwF(f=>({...f,confirmar:e.target.value}));setErrs(v=>({...v,confirmar:""}));}} placeholder="Repite la contraseña" style={{ ...inputS, paddingRight:42, borderColor:errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowPw(v=>({...v,confirmar:!v.confirmar}))} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showPw.confirmar}/></button></div>{errs.confirmar&&<p style={errS}>{errs.confirmar}</p>}{pwF.confirmar&&pwF.confirmar===pwF.nueva&&<p style={{ ...errS, color:C.success }}>✓ Coinciden</p>}</div>
+            <div><label style={_labelS}>Nueva contraseña</label><div style={{ position:"relative" }}><input type={showPw.nueva?"text":"password"} value={pwF.nueva} onChange={e=>{setPwF(f=>({...f,nueva:e.target.value}));setErrs(v=>({...v,nueva:""}));}} placeholder="Mínimo 6 caracteres" style={{ ...inputS, paddingRight:42, borderColor:errs.nueva?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.nueva?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowPw(v=>({...v,nueva:!v.nueva}))} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showPw.nueva}/></button></div>{errs.nueva&&<p style={_errS}>{errs.nueva}</p>}</div>
+            <div><label style={_labelS}>Confirmar contraseña</label><div style={{ position:"relative" }}><input type={showPw.confirmar?"text":"password"} value={pwF.confirmar} onChange={e=>{setPwF(f=>({...f,confirmar:e.target.value}));setErrs(v=>({...v,confirmar:""}));}} placeholder="Repite la contraseña" style={{ ...inputS, paddingRight:42, borderColor:errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowPw(v=>({...v,confirmar:!v.confirmar}))} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showPw.confirmar}/></button></div>{errs.confirmar&&<p style={_errS}>{errs.confirmar}</p>}{pwF.confirmar&&pwF.confirmar===pwF.nueva&&<p style={{ ...errS, color:C.success }}>✓ Coinciden</p>}</div>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={onCerrar} style={{ ...btnGh, flex:1 }} onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>Cancelar</button>
               <button onClick={guardarPw} style={{ ...btnOrg, flex:2 }} onMouseEnter={e=>e.currentTarget.style.background="#E55E00"} onMouseLeave={e=>e.currentTarget.style.background=C.accent}>Cambiar contraseña →</button>
@@ -171,6 +182,13 @@ function ModalEditar({ usuario, onGuardar, onCerrar }) {
 // ══════════════════════════════════════════════════════════════════════════════
 export default function GestionUsuarios({ onVolver }) {
   const { getToken } = useAuth();
+  const C = useC();
+  // Aliases locales reactivos
+  const _inputS = inputS(C);
+  const _labelS = labelS(C);
+  const _errS   = errS(C);
+  const _btnOrg = btnOrg(C);
+  const _btnGh  = btnGh(C);
   const API_URL = import.meta.env.VITE_API_URL
     || (window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1"
         ? "http://localhost:4000/api"
@@ -396,15 +414,15 @@ export default function GestionUsuarios({ onVolver }) {
           {errGlobal&& <div style={{ padding:"10px 14px", borderRadius:8, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", color:C.danger, fontSize:13, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>⚠️ {errGlobal}</div>}
 
           <div style={{ display:"flex", flexDirection:"column", gap:14, flex:1 }}>
-            <div><label style={labelS}>Nombre de usuario</label><input type="text" placeholder="ej: maria.garcia" value={form.username} onChange={e=>{setF("username",e.target.value.replace(/\s/g,""));setErrs(v=>({...v,username:""}));}} style={{ ...inputS, borderColor:errs.username?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.username?"#ef4444":"rgba(255,255,255,0.09)"}/>{errs.username&&<p style={errS}>{errs.username}</p>}</div>
-            <div><label style={labelS}>Nombre completo</label><input type="text" placeholder="ej: María García" value={form.nombre} onChange={e=>{setF("nombre",e.target.value);setErrs(v=>({...v,nombre:""}));}} style={{ ...inputS, borderColor:errs.nombre?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.nombre?"#ef4444":"rgba(255,255,255,0.09)"}/>{errs.nombre&&<p style={errS}>{errs.nombre}</p>}</div>
+            <div><label style={_labelS}>Nombre de usuario</label><input type="text" placeholder="ej: maria.garcia" value={form.username} onChange={e=>{setF("username",e.target.value.replace(/\s/g,""));setErrs(v=>({...v,username:""}));}} style={{ ...inputS, borderColor:errs.username?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.username?"#ef4444":"rgba(255,255,255,0.09)"}/>{errs.username&&<p style={_errS}>{errs.username}</p>}</div>
+            <div><label style={_labelS}>Nombre completo</label><input type="text" placeholder="ej: María García" value={form.nombre} onChange={e=>{setF("nombre",e.target.value);setErrs(v=>({...v,nombre:""}));}} style={{ ...inputS, borderColor:errs.nombre?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.nombre?"#ef4444":"rgba(255,255,255,0.09)"}/>{errs.nombre&&<p style={_errS}>{errs.nombre}</p>}</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div><label style={labelS}>Contraseña</label><div style={{ position:"relative" }}><input type={showP1?"text":"password"} placeholder="Mínimo 6 caracteres" value={form.password} onChange={e=>{setF("password",e.target.value);setErrs(v=>({...v,password:""}));}} style={{ ...inputS, paddingRight:40, borderColor:errs.password?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.password?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowP1(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showP1}/></button></div>{errs.password&&<p style={errS}>{errs.password}</p>}</div>
-              <div><label style={labelS}>Confirmar contraseña</label><div style={{ position:"relative" }}><input type={showP2?"text":"password"} placeholder="Repite la contraseña" value={form.confirmar} onChange={e=>{setF("confirmar",e.target.value);setErrs(v=>({...v,confirmar:""}));}} style={{ ...inputS, paddingRight:40, borderColor:errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowP2(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showP2}/></button></div>{errs.confirmar&&<p style={errS}>{errs.confirmar}</p>}</div>
+              <div><label style={_labelS}>Contraseña</label><div style={{ position:"relative" }}><input type={showP1?"text":"password"} placeholder="Mínimo 6 caracteres" value={form.password} onChange={e=>{setF("password",e.target.value);setErrs(v=>({...v,password:""}));}} style={{ ...inputS, paddingRight:40, borderColor:errs.password?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.password?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowP1(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showP1}/></button></div>{errs.password&&<p style={_errS}>{errs.password}</p>}</div>
+              <div><label style={_labelS}>Confirmar contraseña</label><div style={{ position:"relative" }}><input type={showP2?"text":"password"} placeholder="Repite la contraseña" value={form.confirmar} onChange={e=>{setF("confirmar",e.target.value);setErrs(v=>({...v,confirmar:""}));}} style={{ ...inputS, paddingRight:40, borderColor:errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)" }} onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=errs.confirmar?"#ef4444":"rgba(255,255,255,0.09)"}/><button type="button" onClick={()=>setShowP2(v=>!v)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:C.textGhost, display:"flex", padding:0 }}><EyeIcon open={showP2}/></button></div>{errs.confirmar&&<p style={_errS}>{errs.confirmar}</p>}</div>
             </div>
 
             <div>
-              <label style={labelS}>Módulos de acceso</label>
+              <label style={_labelS}>Módulos de acceso</label>
               <p style={{ fontSize:11, color:C.textGhost, margin:"0 0 8px", fontFamily:"'DM Sans',sans-serif" }}>Los módulos que actives aquí son los que verá este usuario.</p>
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 {MODULOS_DISPONIBLES.map(mod => {

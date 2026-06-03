@@ -10,9 +10,12 @@ import ConfiguracionPage from "./ConfiguracionPage";
 function useC() {
   const { isDark } = useTheme();
   return {
-    // Sidebar siempre oscuro (contraste con naranja)
-    sidebarBg:    "#0d0d0d",
-    sidebarBorder:"rgba(255,255,255,0.06)",
+    // Sidebar: oscuro en dark, gris muy oscuro en light (para que contraste con naranja)
+    sidebarBg:     isDark ? "#0d0d0d" : "#1e2027",
+    sidebarBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.07)",
+    sidebarText:   "rgba(255,255,255,0.5)",
+    sidebarActive: "rgba(255,255,255,0.08)",
+    sidebarHover:  "rgba(255,255,255,0.06)",
     // Todo lo demás responde al tema
     headerBg:     isDark ? "#0d0d0d"  : "#ffffff",
     headerBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)",
@@ -323,29 +326,29 @@ export default function DashboardPage({ onLogout }) {
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:C.mainBg, fontFamily:"'DM Sans','Helvetica Neue',Arial,sans-serif", transition:"background 0.3s" }}>
 
-      {/* Sidebar — siempre oscuro para contraste con el naranja */}
-      <aside style={{ width:sidebarOpen?216:(isMobile?0:64), flexShrink:0, background:"#0d0d0d", borderRight:`1px solid rgba(255,255,255,0.06)`, display:"flex", flexDirection:"column", transition:"all 0.25s", overflow:"hidden", position:"fixed", top:0, left:0, bottom:0, zIndex:150 }}>
-        <div style={{ height:64, padding:"0 14px", display:"flex", alignItems:"center", borderBottom:"1px solid rgba(255,255,255,0.06)", flexShrink:0, justifyContent:"space-between" }}>
+      {/* Sidebar — gris muy oscuro en ambos temas para contraste con naranja */}
+      <aside style={{ width:sidebarOpen?216:(isMobile?0:64), flexShrink:0, background:C.sidebarBg, borderRight:`1px solid ${C.sidebarBorder}`, display:"flex", flexDirection:"column", transition:"all 0.3s", overflow:"hidden", position:"fixed", top:0, left:0, bottom:0, zIndex:150 }}>
+        <div style={{ height:64, padding:"0 14px", display:"flex", alignItems:"center", borderBottom:`1px solid ${C.sidebarBorder}`, flexShrink:0, justifyContent:"space-between" }}>
           <Logo collapsed={isMobile?false:!sidebarOpen}/>
-          {isMobile && <button onClick={()=>setSidebarOpen(false)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.5)", fontSize:18, cursor:"pointer" }}>✕</button>}
+          {isMobile && <button onClick={()=>setSidebarOpen(false)} style={{ background:"none", border:"none", outline:"none", color:C.sidebarText, fontSize:18, cursor:"pointer" }}>✕</button>}
         </div>
         <nav style={{ flex:1, padding:"10px 8px", overflowY:"auto", overflowX:"hidden" }}>
           {navItems.map(({key,label,Icon})=>{
             const active = activeNav===key;
             return (
               <button key={key} onClick={()=>handleNav(key)} title={!sidebarOpen?label:undefined}
-                style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", cursor:"pointer", background:active?"rgba(255,107,0,0.14)":"transparent", color:active?"#FF6B00":"rgba(255,255,255,0.45)", marginBottom:2, fontFamily:"'DM Sans',sans-serif", fontWeight:active?700:500, fontSize:14, whiteSpace:"nowrap", borderLeft:`3px solid ${active?"#FF6B00":"transparent"}`, transition:"all 0.15s" }}
-                onMouseEnter={e=>{ if(!active){ e.currentTarget.style.background="rgba(255,255,255,0.06)"; e.currentTarget.style.color="rgba(255,255,255,0.8)"; }}}
-                onMouseLeave={e=>{ if(!active){ e.currentTarget.style.background="transparent"; e.currentTarget.style.color="rgba(255,255,255,0.45)"; }}}>
+                style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", outline:"none", cursor:"pointer", background:active?"rgba(255,107,0,0.18)":"transparent", color:active?"#FF6B00":C.sidebarText, marginBottom:2, fontFamily:"'DM Sans',sans-serif", fontWeight:active?700:500, fontSize:14, whiteSpace:"nowrap", borderLeft:`3px solid ${active?"#FF6B00":"transparent"}`, transition:"all 0.15s" }}
+                onMouseEnter={e=>{ if(!active){ e.currentTarget.style.background=C.sidebarHover; e.currentTarget.style.color="rgba(255,255,255,0.85)"; }}}
+                onMouseLeave={e=>{ if(!active){ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=C.sidebarText; }}}>
                 <span style={{ flexShrink:0 }}><Icon/></span>
                 {(sidebarOpen||isMobile) && <span>{label}</span>}
               </button>
             );
           })}
         </nav>
-        <div style={{ padding:"10px 8px", borderTop:"1px solid rgba(255,255,255,0.06)", flexShrink:0 }}>
-          <button style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", cursor:"pointer", background:"transparent", color:"rgba(255,255,255,0.45)", fontFamily:"'DM Sans',sans-serif", fontSize:14, whiteSpace:"nowrap" }}
-            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+        <div style={{ padding:"10px 8px", borderTop:`1px solid ${C.sidebarBorder}`, flexShrink:0 }}>
+          <button style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"10px 10px", borderRadius:8, border:"none", outline:"none", cursor:"pointer", background:"transparent", color:C.sidebarText, fontFamily:"'DM Sans',sans-serif", fontSize:14, whiteSpace:"nowrap" }}
+            onMouseEnter={e=>e.currentTarget.style.background=C.sidebarHover} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
             <span style={{ flexShrink:0 }}><IC.Help/></span>
             {(sidebarOpen||isMobile) && <><span style={{ flex:1 }}>Ayuda</span><IC.Chevron/></>}
           </button>
@@ -411,8 +414,7 @@ export default function DashboardPage({ onLogout }) {
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
         @keyframes popIn{from{opacity:0;transform:scale(0.88) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
         * { box-sizing:border-box; }
-        button:focus:not(:focus-visible), input:focus:not(:focus-visible), select:focus:not(:focus-visible) { outline:none !important; }
-        button:focus-visible { outline: 2px solid #FF6B00 !important; outline-offset:2px; }
+        button,input,select,textarea { outline:none !important; }
         select option { background:${C.isDark?"#161616":"#fff"}; color:${C.isDark?"#f0f4f8":"#1a1d23"}; }
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-thumb { background:${C.isDark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.15)"}; border-radius:4px; }

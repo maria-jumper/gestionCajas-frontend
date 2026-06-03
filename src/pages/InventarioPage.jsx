@@ -1,27 +1,32 @@
 import React, { useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
-const C = {
-  bg:          "#0d0d0d",
-  cardBg:      "#161616",
-  cardBorder:  "rgba(255,255,255,0.07)",
-  accent:      "#FF6B00",
-  accentDim:   "rgba(255,107,0,0.18)",
-  textPrimary: "#f0f4f8",
-  textSec:     "#8a9bb0",
-  textGhost:   "#4e6070",
-  inputBg:     "#111111",
-  inputBorder: "rgba(255,255,255,0.1)",
-  success:     "#10b981",
-  successBg:   "rgba(16,185,129,0.12)",
-  danger:      "#ef4444",
-  dangerBg:    "rgba(239,68,68,0.1)",
-  warning:     "#f59e0b",
-  warningBg:   "rgba(245,158,11,0.12)",
-  tableBorder: "rgba(255,255,255,0.05)",
-};
+function useC() {
+  const { isDark } = useTheme();
+  return {
+    bg:          isDark ? "#0d0d0d"  : "#f4f5f7",
+    cardBg:      isDark ? "#161616"  : "#ffffff",
+    cardBorder:  isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
+    accent:      "#FF6B00",
+    accentDim:   "rgba(255,107,0,0.14)",
+    textPrimary: isDark ? "#f0f4f8"  : "#1a1d23",
+    textSec:     isDark ? "#8a9bb0"  : "#5a6478",
+    textGhost:   isDark ? "#4e6070"  : "#9aa5b4",
+    inputBg:     isDark ? "#111111"  : "#f9fafb",
+    inputBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.12)",
+    success:     "#10b981",
+    successBg:   "rgba(16,185,129,0.12)",
+    danger:      "#ef4444",
+    dangerBg:    "rgba(239,68,68,0.1)",
+    warning:     "#f59e0b",
+    warningBg:   "rgba(245,158,11,0.1)",
+    tableBorder: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    isDark,
+  };
+}
 
-const card       = { background: C.cardBg, border: `1px solid ${C.cardBorder}`, borderRadius: 12 };
+
 const ESTADOS    = ["Entregado", "No entregado"];
 const POR_PAGINA = 5;
 
@@ -56,7 +61,8 @@ const DEMO_ENVIOS = [
 ];
 
 // ── Pequeños componentes ──────────────────────────────────────────────────────
-function EstadoBadge({ estado }) {
+function EstadoBadge({
+  const C = useC(); estado }) {
   const ok = estado === "Entregado";
   return (
     <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, letterSpacing:"0.05em", fontFamily:"'Barlow',sans-serif", background:ok?C.successBg:C.dangerBg, color:ok?C.success:C.danger, border:`1px solid ${ok?"rgba(16,185,129,0.25)":"rgba(239,68,68,0.25)"}` }}>
@@ -66,9 +72,10 @@ function EstadoBadge({ estado }) {
   );
 }
 
-function StatCard({ icono, label, valor, sub, color }) {
+function StatCard({
+  const C = useC(); icono, label, valor, sub, color }) {
   return (
-    <div style={{ ...card, padding:"16px 20px", display:"flex", alignItems:"center", gap:16 }}>
+    <div style={{ background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:"16px 20px", display:"flex", alignItems:"center", gap:16 }}>
       <div style={{ width:44, height:44, borderRadius:10, background:color+"20", display:"flex", alignItems:"center", justifyContent:"center", color, flexShrink:0 }}>{icono}</div>
       <div>
         <p style={{ fontSize:11, color:C.textGhost, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:"'Barlow',sans-serif" }}>{label}</p>
@@ -79,7 +86,8 @@ function StatCard({ icono, label, valor, sub, color }) {
   );
 }
 
-function AccionBtn({ children, title, color, onClick }) {
+function AccionBtn({
+  const C = useC(); children, title, color, onClick }) {
   return (
     <button title={title} onClick={onClick}
       style={{ width:28, height:28, borderRadius:6, border:`1px solid ${color}33`, background:color+"15", color, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}
@@ -90,7 +98,8 @@ function AccionBtn({ children, title, color, onClick }) {
   );
 }
 
-function Paginacion({ total, porPagina, pagina, onChange }) {
+function Paginacion({
+  const C = useC(); total, porPagina, pagina, onChange }) {
   const totalPags = Math.ceil(total / porPagina);
   if (totalPags <= 1) return null;
   const pages = Array.from({ length: Math.min(totalPags, 5) }, (_, i) => i + 1);
@@ -112,7 +121,8 @@ function Paginacion({ total, porPagina, pagina, onChange }) {
 }
 
 // ── Modal formulario ──────────────────────────────────────────────────────────
-function ModalForm({ tipo, item, inventario=[], onGuardar, onCerrar }) {
+function ModalForm({
+  const C = useC(); tipo, item, inventario=[], onGuardar, onCerrar }) {
   const esEdicion = !!item;
   const [form, setForm] = useState(item ? {...item} : { guia:"", cliente:"", destinatario:"", valor:"", metodo_pago:"Efectivo", estado:"No entregado" });
   const [buscandoGuia, setBuscandoGuia] = useState(false);
@@ -135,7 +145,7 @@ function ModalForm({ tipo, item, inventario=[], onGuardar, onCerrar }) {
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:300, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
-      <div style={{ ...card, width:"100%", maxWidth:480, padding:"28px", animation:"fadeInUp 0.25s ease" }}>
+      <div style={{ background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:12, width:"100%", maxWidth:480, padding:"28px", animation:"fadeInUp 0.25s ease" }}>
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -269,6 +279,7 @@ const IcoSearch = ()=><svg viewBox="0 0 24 24" width="15" height="15" fill="none
 // ══════════════════════════════════════════════════════════════════════════════
 export default function InventarioPage({ onVolver }) {
   const { getToken } = useAuth();
+  const C = useC();
 
   const [tab,          setTab]          = useState("entregas");
   const [entregas,     setEntregas]     = useState(DEMO_ENTREGAS);
@@ -343,7 +354,7 @@ export default function InventarioPage({ onVolver }) {
       </div>
 
       {/* Contenedor principal con tabs */}
-      <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0, ...card, overflow:"hidden" }}>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0, background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:"hidden" }}>
 
         {/* Tabs */}
         <div style={{ display:"flex", borderBottom:`1px solid ${C.cardBorder}`, padding:"0 20px", flexShrink:0 }}>
@@ -500,7 +511,7 @@ export default function InventarioPage({ onVolver }) {
       {/* Modal confirmar eliminación */}
       {confirmDel && (
         <div style={{ position:"fixed", inset:0, zIndex:400, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
-          <div style={{ ...card, maxWidth:360, width:"100%", padding:"24px", animation:"fadeInUp 0.2s ease" }}>
+          <div style={{ background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:12, maxWidth:360, width:"100%", padding:"24px", animation:"fadeInUp 0.2s ease" }}>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:900, color:C.textPrimary, margin:"0 0 8px", textTransform:"uppercase" }}>¿Eliminar registro?</h3>
             <p style={{ fontSize:13, color:C.textGhost, margin:"0 0 20px" }}>Se eliminará la {confirmDel.tipo} con guía <strong style={{ color:C.accent }}>{confirmDel.guia}</strong>. No se puede deshacer.</p>
             <div style={{ display:"flex", gap:10 }}>
