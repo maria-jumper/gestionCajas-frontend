@@ -36,12 +36,13 @@ const ROLES_ALL = [
   { value:"secretaria", label:"Secretaria",    color:"#10b981", emoji:"📋" },
 ];
 
-// Estilos reactivos al tema — se pasan C como arg o se usan dentro del componente
-const errS   = (C) => ({ fontSize:11, color:C.danger,  margin:"4px 0 0", fontFamily:"'DM Sans',sans-serif" });
-const labelS = (C) => ({ display:"block", fontSize:11, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" });
-const inputS = (C) => ({ width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary, fontSize:14, outline:"none", fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s" });
-const btnOrg = (C) => ({ display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:"none", background:C.accent, color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap" });
-const btnGh  = (C) => ({ display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:"transparent", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap" });
+// Estilos base — los colores de tema se aplican inline con C dentro de los componentes
+const STYL = {
+  btnBase: { display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif", border:"none" },
+  label:   { display:"block", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" },
+  err:     { fontSize:11, margin:"4px 0 0", fontFamily:"'DM Sans',sans-serif" },
+  input:   { width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, fontSize:14, outline:"none", fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s" },
+};
 
 function RolBadge({ rol }) {
   const r = ROLES_ALL.find(x => x.value === rol?.toLowerCase()) || ROLES_ALL[1];
@@ -61,7 +62,10 @@ function EyeIcon({ open }) {
 
 // ── Modal permisos ────────────────────────────────────────────────────────────
 function ModalPermisos({ usuario, onGuardar, onCerrar }) {
+  const C = useC();
   const [sel, setSel] = useState(usuario.modulos || []);
+  const _btnOrg = { ...STYL.btnBase, background:C.accent, color:"#fff" };
+  const _btnGh  = { ...STYL.btnBase, background:"transparent", color:C.textPrimary, border:`1px solid ${C.cardBorder}` };
   const toggle = k => setSel(p => p.includes(k) ? p.filter(x=>x!==k) : [...p,k]);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:500, background:"rgba(0,0,0,0.75)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
@@ -110,7 +114,13 @@ function ModalPermisos({ usuario, onGuardar, onCerrar }) {
 
 // ── Modal editar usuario ──────────────────────────────────────────────────────
 function ModalEditar({ usuario, onGuardar, onCerrar }) {
+  const C = useC();
   const [form,  setForm]  = useState({ nombre:usuario.nombre, email:usuario.email||"" });
+  const _inputS = { ...STYL.input,   border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary };
+  const _labelS = { ...STYL.label,   color:C.textGhost };
+  const _errS   = { ...STYL.err,     color:C.danger };
+  const _btnOrg = { ...STYL.btnBase, background:C.accent, color:"#fff" };
+  const _btnGh  = { ...STYL.btnBase, background:"transparent", color:C.textPrimary, border:`1px solid ${C.cardBorder}` };
   const [pwF,   setPwF]   = useState({ nueva:"", confirmar:"" });
   const [showPw,setShowPw]= useState({ nueva:false, confirmar:false });
   const [tab,   setTab]   = useState("info");
@@ -183,12 +193,12 @@ function ModalEditar({ usuario, onGuardar, onCerrar }) {
 export default function GestionUsuarios({ onVolver }) {
   const { getToken } = useAuth();
   const C = useC();
-  // Aliases locales reactivos
-  const _inputS = inputS(C);
-  const _labelS = labelS(C);
-  const _errS   = errS(C);
-  const _btnOrg = btnOrg(C);
-  const _btnGh  = btnGh(C);
+  // Estilos con tema aplicado
+  const _inputS = { ...STYL.input,   border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary };
+  const _labelS = { ...STYL.label,   color:C.textGhost };
+  const _errS   = { ...STYL.err,     color:C.danger };
+  const _btnOrg = { ...STYL.btnBase, background:C.accent, color:"#fff" };
+  const _btnGh  = { ...STYL.btnBase, background:"transparent", color:C.textPrimary, border:`1px solid ${C.cardBorder}` };
   const API_URL = import.meta.env.VITE_API_URL
     || (window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1"
         ? "http://localhost:4000/api"
