@@ -61,8 +61,8 @@ const DEMO_ENVIOS = [
 ];
 
 // ── Pequeños componentes ──────────────────────────────────────────────────────
-function EstadoBadge({
-  const C = useC(); estado }) {
+function EstadoBadge({ estado }) {
+  const C = useC();
   const ok = estado === "Entregado";
   return (
     <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, letterSpacing:"0.05em", fontFamily:"'Barlow',sans-serif", background:ok?C.successBg:C.dangerBg, color:ok?C.success:C.danger, border:`1px solid ${ok?"rgba(16,185,129,0.25)":"rgba(239,68,68,0.25)"}` }}>
@@ -72,8 +72,8 @@ function EstadoBadge({
   );
 }
 
-function StatCard({
-  const C = useC(); icono, label, valor, sub, color }) {
+function StatCard({ icono, label, valor, sub, color }) {
+  const C = useC();
   return (
     <div style={{ background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:"16px 20px", display:"flex", alignItems:"center", gap:16 }}>
       <div style={{ width:44, height:44, borderRadius:10, background:color+"20", display:"flex", alignItems:"center", justifyContent:"center", color, flexShrink:0 }}>{icono}</div>
@@ -86,8 +86,8 @@ function StatCard({
   );
 }
 
-function AccionBtn({
-  const C = useC(); children, title, color, onClick }) {
+function AccionBtn({ children, title, color, onClick }) {
+  const C = useC();
   return (
     <button title={title} onClick={onClick}
       style={{ width:28, height:28, borderRadius:6, border:`1px solid ${color}33`, background:color+"15", color, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}
@@ -98,8 +98,8 @@ function AccionBtn({
   );
 }
 
-function Paginacion({
-  const C = useC(); total, porPagina, pagina, onChange }) {
+function Paginacion({ total, porPagina, pagina, onChange }) {
+  const C = useC();
   const totalPags = Math.ceil(total / porPagina);
   if (totalPags <= 1) return null;
   const pages = Array.from({ length: Math.min(totalPags, 5) }, (_, i) => i + 1);
@@ -121,8 +121,8 @@ function Paginacion({
 }
 
 // ── Modal formulario ──────────────────────────────────────────────────────────
-function ModalForm({
-  const C = useC(); tipo, item, inventario=[], onGuardar, onCerrar }) {
+function ModalForm({ tipo, item, inventario=[], onGuardar, onCerrar }) {
+  const C = useC();
   const esEdicion = !!item;
   const [form, setForm] = useState(item ? {...item} : { guia:"", cliente:"", destinatario:"", valor:"", metodo_pago:"Efectivo", estado:"No entregado" });
   const [buscandoGuia, setBuscandoGuia] = useState(false);
