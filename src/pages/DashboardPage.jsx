@@ -6,25 +6,27 @@ import GestionUsuarios from "./GestionUsuariosPage";
 import PerfilPage from "./PerfilPage";
 import ConfiguracionPage from "./ConfiguracionPage";
 
-// ── Paleta reactiva: valores calculados desde isDark → fuerza re-render real ──
+// ── Paleta reactiva ───────────────────────────────────────────────────────────
 function useC() {
   const { isDark } = useTheme();
   return {
+    // Sidebar siempre oscuro (contraste con naranja)
     sidebarBg:    "#0d0d0d",
     sidebarBorder:"rgba(255,255,255,0.06)",
+    // Todo lo demás responde al tema
     headerBg:     isDark ? "#0d0d0d"  : "#ffffff",
-    headerBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)",
-    mainBg:       isDark ? "#0d0d0d"  : "#f0f2f5",
-    cardBg:       isDark ? "#111111"  : "#ffffff",
-    cardBorder:   isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.09)",
+    headerBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)",
+    mainBg:       isDark ? "#0d0d0d"  : "#f4f5f7",
+    cardBg:       isDark ? "#161616"  : "#ffffff",
+    cardBorder:   isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
     accent:       "#FF6B00",
-    accentDim:    "rgba(255,107,0,0.14)",
+    accentDim:    "rgba(255,107,0,0.12)",
     navText:      "rgba(255,255,255,0.45)",
-    textPrimary:  isDark ? "#f0f4f8"  : "#111111",
-    textSec:      isDark ? "#8a9bb0"  : "#4a5568",
-    textGhost:    isDark ? "#4e6070"  : "#9aa3ae",
-    inputBg:      isDark ? "#0a0a0a"  : "#f9f9f9",
-    hover:        isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+    textPrimary:  isDark ? "#f0f4f8"  : "#1a1d23",
+    textSec:      isDark ? "#8a9bb0"  : "#5a6478",
+    textGhost:    isDark ? "#4e6070"  : "#9aa5b4",
+    inputBg:      isDark ? "#111111"  : "#f9fafb",
+    hover:        isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
     danger:       "#ef4444",
     success:      "#10b981",
     warning:      "#f59e0b",
@@ -409,9 +411,11 @@ export default function DashboardPage({ onLogout }) {
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
         @keyframes popIn{from{opacity:0;transform:scale(0.88) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
         * { box-sizing:border-box; }
-        select option { background:var(--cf-card,#111); color:var(--cf-text1,#f0f4f8); }
+        button:focus:not(:focus-visible), input:focus:not(:focus-visible), select:focus:not(:focus-visible) { outline:none !important; }
+        button:focus-visible { outline: 2px solid #FF6B00 !important; outline-offset:2px; }
+        select option { background:${C.isDark?"#161616":"#fff"}; color:${C.isDark?"#f0f4f8":"#1a1d23"}; }
         ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-thumb { background:var(--cf-scroll,rgba(255,255,255,0.1)); border-radius:4px; }
+        ::-webkit-scrollbar-thumb { background:${C.isDark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.15)"}; border-radius:4px; }
       `}</style>
     </div>
   );
