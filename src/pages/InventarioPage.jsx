@@ -30,21 +30,11 @@ function useC() {
 const ESTADOS    = ["Entregado", "No entregado"];
 const POR_PAGINA = 5;
 
-const btnOrange = {
-  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-  padding:"9px 18px", borderRadius:8, border:"none", background:C.accent, color:"#fff",
-  fontFamily:"'Barlow Condensed',sans-serif", fontSize:13, fontWeight:800,
-  letterSpacing:"0.05em", textTransform:"uppercase", cursor:"pointer", transition:"background 0.15s",
-};
-
-const inputStyle = {
-  width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8,
-  border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary,
-  fontSize:14, outline:"none", fontFamily:"'Barlow',sans-serif", transition:"border-color 0.15s",
-};
-
-const thStyle = { padding:"10px 14px", fontSize:11, fontWeight:700, color:C.textGhost, textTransform:"uppercase", letterSpacing:"0.08em", textAlign:"left", fontFamily:"'Barlow',sans-serif", borderBottom:`1px solid ${C.tableBorder}`, whiteSpace:"nowrap" };
-const tdStyle = { padding:"11px 14px", fontSize:13, color:C.textSec, fontFamily:"'Barlow',sans-serif", borderBottom:`1px solid ${C.tableBorder}`, whiteSpace:"nowrap" };
+// Estilos base sin colores de tema (se completan con C dentro del componente)
+const btnOrangeBase = { display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px 18px", borderRadius:8, border:"none", color:"#fff", fontFamily:"'Barlow Condensed',sans-serif", fontSize:13, fontWeight:800, letterSpacing:"0.05em", textTransform:"uppercase", cursor:"pointer", transition:"background 0.15s", outline:"none" };
+const inputBase     = { width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, fontSize:14, outline:"none", fontFamily:"'Barlow',sans-serif", transition:"border-color 0.15s" };
+const thBase        = { padding:"10px 14px", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", textAlign:"left", fontFamily:"'Barlow',sans-serif", whiteSpace:"nowrap" };
+const tdBase        = { padding:"11px 14px", fontSize:13, fontFamily:"'Barlow',sans-serif", whiteSpace:"nowrap" };
 
 const DEMO_ENTREGAS = [
   { id:1, guia:"GUIA-12345", cliente:"Juan Pérez",     valor:120000, estado:"Entregado",    fecha:"24/05/2024 10:30 AM" },
@@ -123,6 +113,7 @@ function Paginacion({ total, porPagina, pagina, onChange }) {
 // ── Modal formulario ──────────────────────────────────────────────────────────
 function ModalForm({ tipo, item, inventario=[], onGuardar, onCerrar }) {
   const C = useC();
+  const inputStyle = { ...inputBase, border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary };
   const esEdicion = !!item;
   const [form, setForm] = useState(item ? {...item} : { guia:"", cliente:"", destinatario:"", valor:"", metodo_pago:"Efectivo", estado:"No entregado" });
   const [buscandoGuia, setBuscandoGuia] = useState(false);
@@ -280,6 +271,10 @@ const IcoSearch = ()=><svg viewBox="0 0 24 24" width="15" height="15" fill="none
 export default function InventarioPage({ onVolver }) {
   const { getToken } = useAuth();
   const C = useC();
+  const btnOrange = { ...btnOrangeBase, background:C.accent };
+  const inputStyle = { ...inputBase, border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary };
+  const thStyle    = { ...thBase, color:C.textGhost, borderBottom:`1px solid ${C.tableBorder}` };
+  const tdStyle    = { ...tdBase, color:C.textSec, borderBottom:`1px solid ${C.tableBorder}` };
 
   const [tab,          setTab]          = useState("entregas");
   const [entregas,     setEntregas]     = useState(DEMO_ENTREGAS);
