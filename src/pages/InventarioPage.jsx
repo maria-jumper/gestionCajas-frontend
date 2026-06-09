@@ -7,7 +7,7 @@ function useC() {
   const { isDark } = useTheme();
   return {
     bg:          isDark ? "#0d0d0d"  : "#f4f5f7",
-    cardBg:      isDark ? "#161616"  : "#ffffff",
+    cardBg:      isDark ? "#161616"  : "#190909",
     cardBorder:  isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
     accent:      "#FF6B00",
     accentDim:   "rgba(255,107,0,0.12)",
