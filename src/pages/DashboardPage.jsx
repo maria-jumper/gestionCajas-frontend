@@ -5,6 +5,8 @@ import InventarioPage from "./InventarioPage";
 import GestionUsuarios from "./GestionUsuariosPage";
 import PerfilPage from "./PerfilPage";
 import ConfiguracionPage from "./ConfiguracionPage";
+import InformesPage from "./InformesPage";
+import GastosPage from "./GastosPage";
 
 // ── Paleta reactiva ───────────────────────────────────────────────────────────
 function useC() {
@@ -284,7 +286,9 @@ export default function DashboardPage({ onLogout }) {
   const paginaSub    = activeNav==="inicio" ? "Resumen general de operaciones" : activeNav==="entregas" ? "Gestión de entregas" : activeNav==="envios" ? "Registro de envíos" : activeNav==="perfil" ? "Información de tu cuenta" : activeNav==="configuracion" ? "Preferencias del sistema" : "Módulo del sistema";
 
   const renderVista = () => {
-    if(vista==="form-entregas")  return <FormularioRegistros tipo="entregas"   cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="informes")       return <InformesPage  onVolver={volver}/>;
+    if(vista==="gastos")         return <GastosPage    onVolver={volver}/>;
+        if(vista==="form-entregas")  return <FormularioRegistros tipo="entregas"   cantidad={cantidad} onVolver={volver}/>;
     if(vista==="form-envios")    return <FormularioRegistros tipo="envios"     cantidad={cantidad} onVolver={volver}/>;
     if(vista==="usuarios")       return <GestionUsuarios    onVolver={volver}/>;
     if(vista==="inventario")     return <InventarioPage     onVolver={volver}/>;
