@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import EntregasPage from "./EntregasPage";
+import EnviosPage from "./EnviosPage";
 import InventarioPage from "./InventarioPage";
 import GestionUsuarios from "./GestionUsuariosPage";
 import PerfilPage from "./PerfilPage";
@@ -71,99 +73,6 @@ function Logo({ collapsed }) {
   );
 }
 
-function ModalCantidad({ tipo, onConfirm, onClose }) {
-  const C = useC();
-  const [cantidad, setCantidad] = useState(1);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem" }}>
-      <div style={{ width:"100%",maxWidth:340,background:C.cardBg,borderRadius:14,padding:"28px",boxSizing:"border-box",border:`1px solid ${C.cardBorder}`,animation:"popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}>
-        <div style={{ textAlign:"center",marginBottom:24 }}>
-          <div style={{ fontSize:44,marginBottom:10 }}>{tipo==="entregas"?"📦":"🚚"}</div>
-          <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:900,color:C.textPrimary,margin:"0 0 6px",textTransform:"uppercase" }}>
-            {tipo==="entregas"?"Registrar Entregas":"Registrar Envíos"}
-          </h3>
-          <p style={{ fontSize:13,color:C.textSec,margin:0 }}>¿Cuántos registros deseas ingresar?</p>
-        </div>
-        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:20 }}>
-          <button onClick={()=>setCantidad(v=>Math.max(1,v-1))} style={{ width:38,height:38,borderRadius:8,border:`1px solid ${C.cardBorder}`,background:C.inputBg,color:C.textPrimary,fontSize:18,cursor:"pointer" }}>−</button>
-          <input type="number" min="1" max="50" value={cantidad} onChange={e=>setCantidad(Math.max(1,parseInt(e.target.value)||1))}
-            style={{ flex:1,padding:"10px",borderRadius:8,border:`1.5px solid ${C.cardBorder}`,background:C.inputBg,color:"#FF6B00",fontSize:24,fontWeight:900,textAlign:"center",outline:"none",fontFamily:"'Barlow Condensed',sans-serif",boxSizing:"border-box" }}
-            onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor=C.cardBorder}/>
-          <button onClick={()=>setCantidad(v=>Math.min(50,v+1))} style={{ width:38,height:38,borderRadius:8,border:`1px solid ${C.cardBorder}`,background:C.inputBg,color:C.textPrimary,fontSize:18,cursor:"pointer" }}>+</button>
-        </div>
-        <div style={{ display:"flex",gap:10 }}>
-          <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:8,border:`1px solid ${C.cardBorder}`,background:"transparent",color:C.textPrimary,fontSize:14,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}
-            onMouseEnter={e=>e.currentTarget.style.background=C.hover} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>Cancelar</button>
-          <button onClick={()=>onConfirm(cantidad)} style={{ flex:2,padding:"11px",borderRadius:8,border:"none",background:"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}
-            onMouseEnter={e=>e.currentTarget.style.background="#E55E00"} onMouseLeave={e=>e.currentTarget.style.background="#FF6B00"}>Continuar →</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FormularioRegistros({ tipo, cantidad, onVolver }) {
-  const C = useC();
-  const filas = Array.from({length:cantidad},()=>({guia:"",precio:"",metodo:"EFECTIVO"}));
-  const [datos, setDatos] = useState(filas);
-  const [guardado, setGuardado] = useState(false);
-  const set = (i,campo,val)=>{ const n=[...datos]; n[i][campo]=val; setDatos(n); };
-  const inputS = { width:"100%",boxSizing:"border-box",padding:"10px 12px",borderRadius:8,border:`1.5px solid ${C.cardBorder}`,background:C.inputBg,color:C.textPrimary,fontSize:13,outline:"none",fontFamily:"'DM Sans',sans-serif" };
-  const handleSubmit = e=>{ e.preventDefault(); setGuardado(true); setTimeout(()=>{setGuardado(false);onVolver();},1800); };
-  return (
-    <div style={{ width:"100%",maxWidth:900,margin:"0 auto",boxSizing:"border-box" }}>
-      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,flexWrap:"wrap",gap:12 }}>
-        <div>
-          <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,color:C.textPrimary,margin:"0 0 4px",textTransform:"uppercase" }}>Registrar {tipo==="entregas"?"Entregas":"Envíos"}</h2>
-          <p style={{ fontSize:13,color:C.textSec,margin:0 }}>{cantidad} {cantidad===1?"registro":"registros"} a completar</p>
-        </div>
-        <button onClick={onVolver} style={{ display:"flex",alignItems:"center",gap:8,padding:"9px 18px",borderRadius:8,border:`1px solid ${C.cardBorder}`,background:"transparent",color:C.textSec,fontSize:13,cursor:"pointer",fontFamily:"'DM Sans',sans-serif" }}
-          onMouseEnter={e=>e.currentTarget.style.background=C.hover} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>
-      </div>
-      <form onSubmit={handleSubmit}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:14, marginBottom:24 }}>
-          {datos.map((item,i)=>(
-            <div key={i} style={{ background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:12,padding:"1.25rem",boxSizing:"border-box" }}>
-              <div style={{ fontSize:11,fontWeight:700,color:"#FF6B00",marginBottom:14,textTransform:"uppercase",letterSpacing:"0.1em",paddingBottom:10,borderBottom:`1px solid ${C.cardBorder}`,display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ width:20,height:20,borderRadius:4,background:"#FF6B00",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#fff",fontWeight:800 }}>{i+1}</span>
-                Registro #{i+1}
-              </div>
-              <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-                <div>
-                  <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>N° de Guía</label>
-                  <input required type="text" placeholder="Ej: GUIA-00123" value={item.guia} onChange={e=>set(i,"guia",e.target.value)} style={inputS}
-                    onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor=C.cardBorder}/>
-                </div>
-                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                  <div style={{ flex:"1 1 130px" }}>
-                    <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>Precio ($)</label>
-                    <input required type="number" min="0" step="0.01" placeholder="0.00" value={item.precio} onChange={e=>set(i,"precio",e.target.value)} style={inputS}
-                      onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor=C.cardBorder}/>
-                  </div>
-                  <div style={{ flex:"1 1 130px" }}>
-                    <label style={{ display:"block",fontSize:11,fontWeight:600,color:C.textSec,marginBottom:5 }}>Método de pago</label>
-                    <select value={item.metodo} onChange={e=>set(i,"metodo",e.target.value)} style={{ ...inputS,cursor:"pointer" }}
-                      onFocus={e=>e.target.style.borderColor="#FF6B00"} onBlur={e=>e.target.style.borderColor=C.cardBorder}>
-                      <option value="EFECTIVO">💵 Efectivo</option>
-                      <option value="TRANSFERENCIA">📱 Transferencia</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ display:"flex",justifyContent:"flex-end" }}>
-          <button type="submit" style={{ padding:"12px 32px",borderRadius:8,border:"none",background:guardado?"#10b981":"#FF6B00",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em",textTransform:"uppercase",transition:"all 0.2s" }}
-            onMouseEnter={e=>{ if(!guardado) e.currentTarget.style.background="#E55E00"; }} onMouseLeave={e=>{ if(!guardado) e.currentTarget.style.background="#FF6B00"; }}>
-            {guardado?"✓ ¡Guardado!":`Guardar ${cantidad} ${cantidad===1?"registro":"registros"}`}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
 function ModuloPlaceholder({ titulo, emoji, descripcion, color, onVolver }) {
   const C = useC();
   return (
@@ -221,8 +130,6 @@ export default function DashboardPage({ onLogout }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(true);
   const [activeNav,    setActiveNav]    = useState("inicio");
   const [vista,        setVista]        = useState("inicio");
-  const [modal,        setModal]        = useState(null);
-  const [cantidad,     setCant]         = useState(1);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobile,     setIsMobile]     = useState(false);
   const menuRef = useRef(null);
@@ -269,17 +176,17 @@ export default function DashboardPage({ onLogout }) {
   const handleNav = key => {
     setActiveNav(key);
     if(isMobile) setSidebarOpen(false);
-    if(key==="inicio")                   { setVista("inicio");        return; }
-    if(key==="entregas"||key==="envios") { setModal(key);             return; }
-    if(key==="usuarios")                 { setVista("usuarios");      return; }
-    if(key==="inventario")               { setVista("inventario");    return; }
-    if(key==="configuracion")            { setVista("configuracion"); return; }
-    if(MODULOS_META[key])                { setVista(key);             return; }
+    if(key==="inicio")         { setVista("inicio");         return; }
+    if(key==="entregas")       { setVista("entregas");       return; }
+    if(key==="envios")         { setVista("envios");         return; }
+    if(key==="usuarios")       { setVista("usuarios");       return; }
+    if(key==="inventario")     { setVista("inventario");     return; }
+    if(key==="configuracion")  { setVista("configuracion");  return; }
+    if(MODULOS_META[key])       { setVista(key);               return; }
   };
 
   const abrirPerfil = () => { setVista("perfil"); setActiveNav("perfil"); setShowUserMenu(false); };
   const abrirConfig = () => { setVista("configuracion"); setActiveNav("configuracion"); setShowUserMenu(false); if(isMobile) setSidebarOpen(false); };
-  const confirmar   = cant => { setCant(cant); setVista(modal==="entregas"?"form-entregas":"form-envios"); setModal(null); };
   const volver      = () => { setVista("inicio"); setActiveNav("inicio"); };
 
   const paginaTitulo = activeNav==="perfil" ? "Mi Perfil" : navItems.find(n=>n.key===activeNav)?.label || "Inicio";
@@ -288,8 +195,8 @@ export default function DashboardPage({ onLogout }) {
   const renderVista = () => {
     if(vista==="informes")       return <InformesPage  onVolver={volver}/>;
     if(vista==="gastos")         return <GastosPage    onVolver={volver}/>;
-        if(vista==="form-entregas")  return <FormularioRegistros tipo="entregas"   cantidad={cantidad} onVolver={volver}/>;
-    if(vista==="form-envios")    return <FormularioRegistros tipo="envios"     cantidad={cantidad} onVolver={volver}/>;
+    if(vista==="entregas")   return <EntregasPage  onVolver={volver}/>;
+    if(vista==="envios")     return <EnviosPage    onVolver={volver}/>;
     if(vista==="usuarios")       return <GestionUsuarios    onVolver={volver}/>;
     if(vista==="inventario")     return <InventarioPage     onVolver={volver}/>;
     if(vista==="perfil")         return <PerfilPage         onVolver={volver}/>;
@@ -311,7 +218,7 @@ export default function DashboardPage({ onLogout }) {
         <div style={{ flexShrink:0 }}>
           <p style={{ fontSize:11, fontWeight:700, color:C.textGhost, letterSpacing:"0.1em", textTransform:"uppercase", margin:"0 0 10px" }}>¿Qué operación deseas realizar hoy?</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:12 }}>
-            {[{ key:"entregas", Icon:IC.Box, title:"Entregas", desc:"Registra guías y completa entregas de paquetes." },{ key:"envios", Icon:IC.Truck, title:"Envíos", desc:"Registra nuevos paquetes para enviar." }].map(op=><OpCard key={op.key} {...op} onClick={()=>{ setModal(op.key); setActiveNav(op.key); }}/>)}
+            {[{ key:"entregas", Icon:IC.Box, title:"Entregas", desc:"Registra guías y completa entregas de paquetes." },{ key:"envios", Icon:IC.Truck, title:"Envíos", desc:"Registra nuevos paquetes para enviar." }].map(op=><OpCard key={op.key} {...op} onClick={()=>{ setVista(op.key); setActiveNav(op.key); }}/>)}
           </div>
         </div>
 
@@ -412,7 +319,6 @@ export default function DashboardPage({ onLogout }) {
         </main>
       </div>
 
-      {modal && <ModalCantidad tipo={modal} onConfirm={confirmar} onClose={()=>setModal(null)}/>}
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
