@@ -29,6 +29,17 @@ const hoy      = () => new Date().toISOString().split("T")[0];
 const fmtFecha = (d) => new Date(d).toLocaleDateString("es-CO", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 const fmtMoney = (n) => `$${Number(n||0).toLocaleString("es-CO")}`;
 
+// Convierte hora UTC "HH:mm" a hora Colombia (UTC-5)
+const fmtHoraColombia = (hora) => {
+  if (!hora) return "—";
+  try {
+    const [h, m] = hora.split(':').map(Number);
+    const utc = new Date();
+    utc.setUTCHours(h, m, 0, 0);
+    return utc.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota' });
+  } catch { return hora; }
+};
+
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 function KpiCard({ label, valor, sub, color, icono }) {
   const C = useC();
@@ -130,7 +141,7 @@ function ModalDetalle({ op, onCerrar }) {
                   </td>
                   <td style={{ padding:"9px 12px", fontWeight:700, color:C.textPrimary, fontFamily:"'DM Sans',sans-serif" }}>{fmtMoney(m.valor)}</td>
                   <td style={{ padding:"9px 12px", color:C.textSec, fontFamily:"'DM Sans',sans-serif" }}>{m.metodo_pago||"—"}</td>
-                  <td style={{ padding:"9px 12px", color:C.textGhost, fontFamily:"'DM Sans',sans-serif" }}>{m.hora||"—"}</td>
+                  <td style={{ padding:"9px 12px", color:C.textGhost, fontFamily:"'DM Sans',sans-serif" }}>{fmtHoraColombia(m.hora)}</td>
                 </tr>
               ))}
             </tbody>
