@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { getCierreDia, cerrarCaja } from "../api";
 
 function useC() {
   const { isDark } = useTheme();
@@ -25,8 +26,6 @@ function useC() {
     isDark,
   };
 }
-
-const API = () => import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const hoy = () => new Date().toISOString().split("T")[0];
 const fmtFecha = (d) => new Date(d).toLocaleDateString("es-CO", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
@@ -120,7 +119,6 @@ function FilaSecretaria({ sec, idx }) {
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function InformesPage({ onVolver }) {
-  const { getToken } = useAuth();
   const C = useC();
 
   const [fecha,      setFecha]      = useState(hoy());
@@ -134,16 +132,11 @@ export default function InformesPage({ onVolver }) {
   const cargar = async (f) => {
     setCargando(true); setDatos(null); setCerrado(false);
     try {
-      const token = getToken?.();
-      const res = await fetch(`${API()}/informes/cierre-dia?fecha=${f}`, {
-        headers: token ? { Authorization:`Bearer ${token}` } : {}
-      });
-      if (res.ok) {
-        const d = await res.json();
+      const d = await getCierreDia(f);
+      if (d && !d.error) {
         setDatos(d);
         setCerrado(!!d.cerrado);
       } else {
-        // Si el backend no tiene este endpoint aún, mostrar estructura vacía
         setDatos({ secretarias:[], total_general:0, total_entregas:0, total_envios:0, total_gastos:0, fecha:f, cerrado:false });
       }
     } catch {
@@ -155,14 +148,7 @@ export default function InformesPage({ onVolver }) {
   useEffect(() => { cargar(fecha); }, [fecha]);
 
   const cerrarCaja = async () => {
-    try {
-      const token = getToken?.();
-      await fetch(`${API()}/informes/cierre-dia`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) },
-        body: JSON.stringify({ fecha, datos })
-      });
-    } catch {}
+    try { await cerrarCaja({ fecha, datos }); } catch {}
     setCerrado(true);
     setConfirmCierre(false);
     setDatos(d => d ? { ...d, cerrado:true } : d);

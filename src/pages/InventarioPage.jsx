@@ -2,12 +2,13 @@ import React, { useState, useCallback, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import * as XLSX from "xlsx";
+import { getInventario, getInventarioPorGuia, importarInventario, updateInventario, deleteInventario } from "../api";
 
 function useC() {
   const { isDark } = useTheme();
   return {
     bg:          isDark ? "#0d0d0d"  : "#f4f5f7",
-    cardBg:      isDark ? "#161616"  : "#190909",
+    cardBg:      isDark ? "#161616"  : "#ffffff",
     cardBorder:  isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
     accent:      "#FF6B00",
     accentDim:   "rgba(255,107,0,0.12)",
@@ -338,11 +339,8 @@ export default function InventarioPage({ onVolver }) {
     (async () => {
       try {
         const token = getToken?.();
-        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/inventario`, { headers: token ? { Authorization:`Bearer ${token}` } : {} });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await getInventario();
           if (Array.isArray(data) && data.length) setGuias(data.map(g => ({ ...g, estado: ESTADOS.includes(g.estado) ? g.estado : "No entregado" })));
-        }
       } catch {}
     })();
   }, []);
@@ -357,7 +355,7 @@ export default function InventarioPage({ onVolver }) {
     setModalImport(false);
     try {
       const token = getToken?.();
-      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/inventario/importar`, { method:"POST", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify(final) });
+      await fetch(`${API_URL}/inventario/importar`, { method:"POST", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify(final) });
     } catch {}
   }, [guias]);
 
@@ -366,7 +364,7 @@ export default function InventarioPage({ onVolver }) {
     setConfirmDel(null);
     try {
       const token = getToken?.();
-      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/inventario/${id}`, { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} });
+      await fetch(`${API_URL}/inventario/${id}`, { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} });
     } catch {}
   };
 

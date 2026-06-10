@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { getGastos, createGasto, deleteGasto } from "../api";
 
 function useC() {
   const { isDark } = useTheme();
@@ -52,7 +53,7 @@ function CatBadge({ categoria }) {
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function GastosPage({ onVolver }) {
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   const C = useC();
 
   const [gastos,    setGastos]    = useState([]);
@@ -78,14 +79,10 @@ export default function GastosPage({ onVolver }) {
   const cargar = async () => {
     setCargando(true);
     try {
-      const token = getToken?.();
       const params = new URLSearchParams({ fecha: filtroFecha });
       if (filtroCat !== "Todos") params.set("categoria", filtroCat);
-      const res = await fetch(`${API()}/gastos?${params}`, { headers: token?{Authorization:`Bearer ${token}`}:{} });
-      if (res.ok) {
-        const d = await res.json();
-        setGastos(Array.isArray(d) ? d : []);
-      } else setGastos([]);
+      const d = await getGastos(params.toString());
+      setGastos(Array.isArray(d) ? d : []);
     } catch { setGastos([]); }
     setCargando(false);
   };
@@ -111,18 +108,8 @@ export default function GastosPage({ onVolver }) {
       registrado_por: user?.nombre || user?.username || "Admin",
     };
     try {
-      const token = getToken?.();
-      const res = await fetch(`${API()}/gastos`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) },
-        body: JSON.stringify(nuevo),
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setGastos(p => [{ ...nuevo, id:saved.id||saved._id||Date.now() }, ...p]);
-      } else {
-        setGastos(p => [{ ...nuevo, id:Date.now() }, ...p]);
-      }
+      const saved = await createGasto(nuevo);
+      setGastos(p => [{ ...nuevo, id:saved.id||Date.now() }, ...p]);
     } catch {
       setGastos(p => [{ ...nuevo, id:Date.now() }, ...p]);
     }
@@ -134,10 +121,7 @@ export default function GastosPage({ onVolver }) {
   };
 
   const eliminar = async (id) => {
-    try {
-      const token = getToken?.();
-      await fetch(`${API()}/gastos/${id}`, { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} });
-    } catch {}
+    try { await deleteGasto(id); } catch {}
     setGastos(p => p.filter(g => g.id !== id));
     setConfirmDel(null);
     toast("Gasto eliminado");

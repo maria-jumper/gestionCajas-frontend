@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { getUsuarioById } from "../api";
 import EntregasPage from "./EntregasPage";
 import EnviosPage from "./EnviosPage";
 import PerfilPage from "./PerfilPage";
@@ -41,9 +42,6 @@ const MODULOS_INFO = {
   gastos:     { label:"Gastos",     emoji:"💰", desc:"Registra gastos operativos" },
 };
 
-const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:4000/api"
-  : "https://api-gestion-cajas.onrender.com/api";
 
 const MOVIMIENTOS_DEMO = [
   { id:1, tipo:"entrega", status:"Entrega Completada",  guia:"12345",     fecha:"24/05/2024", nombre:"Juan Fernández",    estado:"Entregado"    },
@@ -176,7 +174,7 @@ function AppHeader({ user, nombreUsuario, emailUsuario, modulosActivos, showUser
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function SecretariaDashboard({ onLogout }) {
-  const { user, logout, getToken } = useAuth();
+  const { user, logout } = useAuth();
   const C = useC();
   const [vista,        setVista]       = useState("inicio");
   const [showUserMenu, setShowUserMenu]= useState(false);
@@ -199,12 +197,8 @@ export default function SecretariaDashboard({ onLogout }) {
     if (!user?.id) return;
     const fetchModulos = async () => {
       try {
-        const token = getToken?.();
-        const res = await fetch(`${API_URL}/usuarios/${user.id}`, {
-          headers: token ? { Authorization:`Bearer ${token}` } : {}
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await getUsuarioById(user.id);
+        if (data && !data.error) {
           const mods = Array.isArray(data.modulos) ? data.modulos : [];
           setModulosActivos(mods);
           localStorage.setItem(`cf-modulos-${user.id}`, JSON.stringify(mods));

@@ -105,7 +105,7 @@ export default function EnviosPage({ onVolver }) {
     setGuardando(true);
     try {
       const token = getToken?.();
-      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/envios`, { method:"POST", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify({ guia, precio:parseFloat(precio), metodo_pago:metodoPago, referencia:metodoPago==="transaccion"?referencia:null, cantidad }) });
+      await fetch(`${API_URL}/envios`, { method:"POST", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify({ guia, precio:parseFloat(precio), metodo_pago:metodoPago, referencia:metodoPago==="transaccion"?referencia:null, cantidad }) });
     } catch { console.warn("Backend no disponible"); }
     setGuardando(false); setExito(true);
     setTimeout(() => { setExito(false); onVolver(); }, 2000);

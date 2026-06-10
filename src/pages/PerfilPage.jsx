@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { getUsuarios, updateUsuario } from "../api";
 
-const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:4000/api"
-  : "https://api-gestion-cajas.onrender.com/api";
 
 const ROLES_INFO = {
   admin:         { label:"Administrador", color:"#6366f1", emoji:"🛡️" },

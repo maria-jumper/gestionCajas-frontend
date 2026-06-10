@@ -36,9 +36,6 @@ const ROLES = [
   { value:"secretaria", label:"Secretaria",    color:"#10b981", emoji:"📋" },
 ];
 
-const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:4000/api"
-  : "https://api-gestion-cajas.onrender.com/api";
 
 // ── Helpers de UI ─────────────────────────────────────────────────────────────
 function RolBadge({ rol }) {
@@ -253,7 +250,6 @@ function ModalEditar({ usuario, onGuardar, onCerrar }) {
 // COMPONENTE PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
 export default function GestionUsuarios({ onVolver }) {
-  const { getToken } = useAuth();
   const C = useC();
 
   const [vista,         setVista]         = useState("lista");
@@ -284,12 +280,8 @@ export default function GestionUsuarios({ onVolver }) {
     (async () => {
       setCargando(true);
       try {
-        const token = getToken?.();
-        const res = await fetch(`${API_URL}/usuarios`, { headers: token ? { Authorization:`Bearer ${token}` } : {} });
-        if (res.ok) {
-          const d = await res.json();
-          if (Array.isArray(d)) setUsuarios(d.map(u => ({ ...u, modulos:u.modulos||[], activo:u.activo!==false })));
-        }
+        const d = await getUsuarios();
+        if (Array.isArray(d)) setUsuarios(d.map(u => ({ ...u, modulos:u.modulos||[], activo:u.activo!==false })));
       } catch (e) { console.error(e); }
       setCargando(false);
     })();
@@ -310,14 +302,8 @@ export default function GestionUsuarios({ onVolver }) {
     if (!validar()) return;
     setCreando(true); setErrGlobal("");
     try {
-      const token = getToken?.();
-      const res = await fetch(`${API_URL}/usuarios`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", ...(token ? { Authorization:`Bearer ${token}` } : {}) },
-        body:JSON.stringify({ username:form.username.trim().toLowerCase(), nombre:form.nombre.trim(), password:form.password, rol:"secretaria", modulos:form.modulos }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || data.error || "Error al crear usuario");
+      const data = await createUsuario({ username:form.username.trim().toLowerCase(), nombre:form.nombre.trim(), password:form.password, rol:"secretaria", modulos:form.modulos });
+      if (data.error) throw new Error(data.error || "Error al crear usuario");
       const nuevo = { id:data.id||data._id||Date.now(), username:form.username.trim().toLowerCase(), nombre:form.nombre.trim(), rol:"secretaria", email:data.email||`${form.username}@cajasflow.com`, activo:true, creado:new Date().toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"}), modulos:form.modulos };
       setUsuarios(p => [...p, nuevo]);
       setExito(`@${nuevo.username} creado correctamente.`);
@@ -334,8 +320,7 @@ export default function GestionUsuarios({ onVolver }) {
     setUsuarios(p => p.map(u => u.id===uid ? { ...u, modulos:mods } : u));
     try {
       localStorage.setItem(`cf-modulos-${uid}`, JSON.stringify(mods));
-      const token = getToken?.();
-      await fetch(`${API_URL}/usuarios/${uid}`, { method:"PUT", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify({ modulos:mods }) });
+      await updateUsuario(uid, { modulos: mods });
     } catch {}
     setModalPermisos(null);
   };
@@ -343,8 +328,7 @@ export default function GestionUsuarios({ onVolver }) {
   const guardarEdicion = async (u) => {
     setUsuarios(p => p.map(x => x.id===u.id ? { ...x, nombre:u.nombre, email:u.email } : x));
     try {
-      const token = getToken?.();
-      await fetch(`${API_URL}/usuarios/${u.id}`, { method:"PUT", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify(u) });
+      await updateUsuario(u.id, u);
     } catch {}
   };
 
@@ -352,15 +336,13 @@ export default function GestionUsuarios({ onVolver }) {
     const nv = !u.activo;
     setUsuarios(p => p.map(x => x.id===u.id ? { ...x, activo:nv } : x));
     try {
-      const token = getToken?.();
-      await fetch(`${API_URL}/usuarios/${u.id}`, { method:"PUT", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify({ activo:nv }) });
+      await updateUsuario(u.id, { activo: nv });
     } catch {}
   };
 
   const eliminar = async (id) => {
     try {
-      const token = getToken?.();
-      await fetch(`${API_URL}/usuarios/${id}`, { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} });
+      await deleteUsuario(id);
     } catch {}
     setUsuarios(p => p.filter(u => u.id !== id));
     setConfirmDel(null);

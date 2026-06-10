@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { getInventarioPorGuia, getInventario, updateInventario, createEntrega } from "../api";
 
 function useC() {
   const { isDark } = useTheme();
@@ -23,8 +24,6 @@ function useC() {
     isDark,
   };
 }
-
-const API = () => import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
 function Stepper({ paso, pasos }) {
@@ -63,7 +62,6 @@ function DatoRow({ label, value, accent }) {
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function EntregasPage({ onVolver }) {
-  const { getToken } = useAuth();
   const C = useC();
 
   const PASOS = ["Buscar guía", "Confirmar datos", "Método de pago"];
@@ -95,27 +93,21 @@ export default function EntregasPage({ onVolver }) {
     if (!g) return;
     setBuscando(true); setErrorBusq(""); setPaquete(null);
     try {
-      const token = getToken?.();
-      const res = await fetch(`${API()}/inventario/guia/${encodeURIComponent(g)}`, { headers: token ? { Authorization:`Bearer ${token}` } : {} });
-      if (!res.ok) {
-        // Intentar buscar en la lista general
-        const res2 = await fetch(`${API()}/inventario?guia=${encodeURIComponent(g)}`, { headers: token ? { Authorization:`Bearer ${token}` } : {} });
-        if (res2.ok) {
-          const arr = await res2.json();
-          const found = Array.isArray(arr) ? arr.find(x => x.guia?.toLowerCase() === g.toLowerCase()) : null;
-          if (found) { setPaquete(found); setBuscando(false); return; }
-        }
-        setErrorBusq("Guía no encontrada en el inventario. Verifica el número e intenta de nuevo.");
-        setBuscando(false); return;
+      let data = await getInventarioPorGuia(g);
+      if (data.error || !data.guia) {
+        // Intentar en lista general
+        const lista = await getInventario(`guia=${encodeURIComponent(g)}`);
+        const found = Array.isArray(lista) ? lista.find(x => x.guia?.toLowerCase() === g.toLowerCase()) : null;
+        if (!found) { setErrorBusq("Guía no encontrada en el inventario."); setBuscando(false); return; }
+        data = found;
       }
-      const data = await res.json();
       if (data.estado === "Entregado") {
         setErrorBusq("Esta guía ya fue marcada como entregada.");
         setBuscando(false); return;
       }
       setPaquete(data);
     } catch {
-      setErrorBusq("No se pudo conectar con el servidor. Verifica tu conexión.");
+      setErrorBusq("No se pudo conectar con el servidor.");
     }
     setBuscando(false);
   };
@@ -130,25 +122,14 @@ export default function EntregasPage({ onVolver }) {
     if (!paquete || !metodoPago) return;
     setGuardando(true);
     try {
-      const token = getToken?.();
-      // 1. Registrar la entrega
-      await fetch(`${API()}/entregas`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) },
-        body:JSON.stringify({
-          guia:       paquete.guia,
-          precio:     paquete.valor,
-          metodo_pago:metodoPago,
-          referencia: metodoPago==="transaccion" ? referencia : null,
-          id_inventario: paquete.id,
-        }),
+      await createEntrega({
+        guia:          paquete.guia,
+        precio:        paquete.valor,
+        metodo_pago:   metodoPago,
+        referencia:    metodoPago === "transaccion" ? referencia : null,
+        id_inventario: paquete.id,
       });
-      // 2. Actualizar estado en inventario a "Entregado"
-      await fetch(`${API()}/inventario/${paquete.id}`, {
-        method:"PUT",
-        headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) },
-        body:JSON.stringify({ estado:"Entregado" }),
-      });
+      await updateInventario(paquete.id, { estado: "Entregado" });
     } catch { console.warn("Backend no disponible"); }
     setGuardando(false);
     setExito(true);
