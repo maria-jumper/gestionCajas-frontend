@@ -233,13 +233,114 @@ function ModalCierreCaja({ fecha, datos, onConfirmar, onCerrar }) {
   );
 
   // ── PREVIEW DEL CIERRE ────────────────────────────────────────────────────
+  const imprimirCierre = () => {
+    const win = window.open('', '_blank', 'width=800,height=900');
+    const fecha_str = fmtFecha(fecha + "T12:00:00");
+    const filas_ops = resumenOperadores.map(op => `
+      <div class="operador">
+        <div class="op-header">
+          <strong>${op.nombre}</strong>
+          <span class="rol-badge">${op.rol === 'admin' ? 'Administrador' : 'Secretaria'}</span>
+        </div>
+        <table>
+          <tr><td>Entregas realizadas</td><td>${op.entregas_count || 0} ops · ${fmtMoney(op.total_entregas)}</td></tr>
+          <tr><td>Envíos realizados</td><td>${op.envios_count || 0} ops · ${fmtMoney(op.total_envios)}</td></tr>
+          <tr><td><strong>Total generado</strong></td><td><strong>${fmtMoney(op.total_dia)}</strong></td></tr>
+          <tr><td>Efectivo esperado</td><td>${fmtMoney(op.efectivoEsperado)}</td></tr>
+          <tr><td>Efectivo entregado</td><td>${fmtMoney(op.efectivoContado)}</td></tr>
+          <tr class="${op.diferencia >= 0 ? 'verde' : 'rojo'}">
+            <td><strong>${op.diferencia >= 0 ? 'Sobran' : 'Faltan'}</strong></td>
+            <td><strong>${fmtMoney(Math.abs(op.diferencia))}</strong></td>
+          </tr>
+        </table>
+      </div>
+    `).join('');
+
+    win.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Cierre de Caja - ${fecha}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; font-size: 13px; color: #111; background: white; padding: 32px; max-width: 700px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #111; }
+    .header h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .header h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .header p { font-size: 12px; color: #555; text-transform: capitalize; }
+    .operador { margin-bottom: 18px; padding: 14px; border: 1px solid #ddd; border-radius: 6px; }
+    .op-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .op-header strong { font-size: 15px; }
+    .rol-badge { font-size: 10px; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; color: #555; }
+    table { width: 100%; border-collapse: collapse; }
+    tr { border-bottom: 1px solid #eee; }
+    td { padding: 5px 4px; }
+    td:first-child { color: #555; }
+    td:last-child { text-align: right; font-weight: 500; }
+    .verde td { color: #059669; }
+    .rojo td { color: #dc2626; }
+    .totales { margin-top: 20px; padding: 16px; border: 2px solid #FF6B00; border-radius: 6px; }
+    .totales h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; color: #FF6B00; }
+    .totales table { border-collapse: collapse; width: 100%; }
+    .totales tr { border-bottom: 1px solid #ffe4cc; }
+    .totales td { padding: 5px 4px; }
+    .totales td:last-child { text-align: right; }
+    .total-neto td { font-size: 16px; font-weight: 900; color: #059669; }
+    .total-dif td { font-size: 14px; font-weight: 700; }
+    .falta td { color: #dc2626; }
+    .sobra td { color: #059669; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; font-size: 11px; color: #888; }
+    @media print {
+      body { padding: 16px; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Inter Rapidísimo</h1>
+    <h2>Cierre de Caja</h2>
+    <p>${fecha_str}</p>
+  </div>
+
+  ${filas_ops}
+
+  <div class="totales">
+    <h3>Resumen Global</h3>
+    <table>
+      <tr><td>Total ingresos del día</td><td><strong>${fmtMoney(totalGeneral)}</strong></td></tr>
+      <tr><td>Total transferencias</td><td>${fmtMoney(datos?.total_transferencias || 0)}</td></tr>
+      <tr><td>Total efectivo esperado</td><td>${fmtMoney(totalEsperado)}</td></tr>
+      <tr><td>Total efectivo contado</td><td>${fmtMoney(totalContado)}</td></tr>
+      <tr><td>Gastos del día</td><td>- ${fmtMoney(totalGastos)}</td></tr>
+      <tr class="total-neto"><td>Neto del día</td><td>${fmtMoney(neto)}</td></tr>
+      <tr class="total-dif ${diferenciaTotal >= 0 ? 'sobra' : 'falta'}">
+        <td>${diferenciaTotal >= 0 ? 'Total Sobra' : 'Total Falta'}</td>
+        <td>${fmtMoney(Math.abs(diferenciaTotal))}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>Generado: ${new Date().toLocaleString('es-CO')}</span>
+    <span>CajasFlow · Inter Rapidísimo</span>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); }
+  </script>
+</body>
+</html>`);
+    win.document.close();
+  };
+
   return (
     <div style={{ position:"fixed", inset:0, zIndex:500, background:"rgba(0,0,0,0.75)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
       <div style={{ background:C.cardBg, border:`1px solid ${C.cardBorder}`, borderRadius:16, width:"100%", maxWidth:560, maxHeight:"90vh", display:"flex", flexDirection:"column", padding:"28px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16, flexShrink:0 }}>
           <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20, fontWeight:900, color:C.textPrimary, margin:0, textTransform:"uppercase" }}>Resumen de Cierre</h3>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={() => window.print()}
+            <button onClick={imprimirCierre}
               style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:C.hover, color:C.textSec, fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer", outline:"none" }}>
               🖨️ Imprimir
             </button>
@@ -304,7 +405,7 @@ function ModalCierreCaja({ fecha, datos, onConfirmar, onCerrar }) {
         <div style={{ display:"flex", gap:10, marginTop:16, flexShrink:0 }}>
           <button onClick={() => setPaso("ingresar")} style={{ flex:1, padding:"11px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:"transparent", color:C.textPrimary, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer", outline:"none" }}
             onMouseEnter={e=>e.currentTarget.style.background=C.hover} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>← Volver</button>
-          <button onClick={() => window.print()} style={{ padding:"11px 18px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:C.hover, color:C.textSec, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer", outline:"none" }}>
+          <button onClick={imprimirCierre} style={{ padding:"11px 18px", borderRadius:8, border:`1px solid ${C.cardBorder}`, background:C.hover, color:C.textSec, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer", outline:"none" }}>
             🖨️ Imprimir
           </button>
           <button onClick={() => onConfirmar(resumenOperadores, { totalContado, totalEsperado, diferenciaTotal })}
