@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from "../api";
 
 // ── Paleta reactiva ───────────────────────────────────────────────────────────
 function useC() {
