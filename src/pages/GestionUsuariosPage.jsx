@@ -281,7 +281,12 @@ export default function GestionUsuarios({ onVolver }) {
       setCargando(true);
       try {
         const d = await getUsuarios();
-        if (Array.isArray(d)) setUsuarios(d.map(u => ({ ...u, modulos:u.modulos||[], activo:u.activo!==false })));
+        // Manejar tanto array directo como { data: { usuarios: [] } } o { usuarios: [] }
+        const lista = Array.isArray(d) ? d : 
+                      Array.isArray(d?.data?.usuarios) ? d.data.usuarios :
+                      Array.isArray(d?.usuarios) ? d.usuarios :
+                      Array.isArray(d?.data) ? d.data : [];
+        if (lista.length >= 0) setUsuarios(lista.map(u => ({ ...u, modulos: typeof u.modulos === 'string' ? JSON.parse(u.modulos || '[]') : (u.modulos||[]), activo:u.activo!==false && u.activo!==0 })));
       } catch (e) { console.error(e); }
       setCargando(false);
     })();
