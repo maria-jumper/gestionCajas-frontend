@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import * as XLSX from "xlsx";
@@ -142,7 +142,6 @@ function Paginacion({ total, porPagina, pagina, onChange }) {
 // ── Modal importar Excel ──────────────────────────────────────────────────────
 function ModalImportExcel({ onImportar, onCerrar }) {
   const C = useC();
-  const fileRef = useRef(null);
   const [archivo,    setArchivo]    = useState(null);
   const [preview,    setPreview]    = useState([]);
   const [columnas,   setColumnas]   = useState([]);
@@ -195,13 +194,12 @@ function ModalImportExcel({ onImportar, onCerrar }) {
         </div>
 
         {/* Zona de subida */}
-        <div
-          onClick={() => fileRef.current?.click()}
+        <label
           onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = C.accent; }}
           onDragLeave={e => e.currentTarget.style.borderColor = C.cardBorder}
           onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = C.cardBorder; leerArchivo(e.dataTransfer.files[0]); }}
-          style={{ border:`2px dashed ${archivo?C.accent:C.cardBorder}`, borderRadius:10, padding:"24px", textAlign:"center", cursor:"pointer", background:archivo?C.accentDim:C.inputBg, transition:"all 0.2s", flexShrink:0, marginBottom:14 }}>
-          <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={e=>leerArchivo(e.target.files[0])}/>
+          style={{ border:`2px dashed ${archivo?C.accent:C.cardBorder}`, borderRadius:10, padding:"24px", textAlign:"center", cursor:"pointer", background:archivo?C.accentDim:C.inputBg, transition:"all 0.2s", flexShrink:0, marginBottom:14, display:"block" }}>
+          <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={e=>leerArchivo(e.target.files[0])}/>
           <div style={{ fontSize:32, marginBottom:8 }}>📊</div>
           {archivo ? (
             <p style={{ fontSize:14, fontWeight:700, color:C.accent, margin:0, fontFamily:"'DM Sans',sans-serif" }}>✓ {archivo.name}</p>
@@ -211,7 +209,7 @@ function ModalImportExcel({ onImportar, onCerrar }) {
               <p style={{ fontSize:12, color:C.textGhost, margin:0, fontFamily:"'DM Sans',sans-serif" }}>Formatos: .xlsx, .xls, .csv</p>
             </>
           )}
-        </div>
+        </label>
 
         {error && <div style={{ padding:"10px 14px", borderRadius:8, background:C.dangerBg, border:"1px solid rgba(239,68,68,0.25)", color:C.danger, fontSize:13, marginBottom:12, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>⚠️ {error}</div>}
 
