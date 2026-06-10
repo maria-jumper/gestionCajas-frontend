@@ -194,22 +194,25 @@ function ModalImportExcel({ onImportar, onCerrar }) {
         </div>
 
         {/* Zona de subida */}
-        <label
+        <div
           onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = C.accent; }}
           onDragLeave={e => e.currentTarget.style.borderColor = C.cardBorder}
           onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = C.cardBorder; leerArchivo(e.dataTransfer.files[0]); }}
-          style={{ border:`2px dashed ${archivo?C.accent:C.cardBorder}`, borderRadius:10, padding:"24px", textAlign:"center", cursor:"pointer", background:archivo?C.accentDim:C.inputBg, transition:"all 0.2s", flexShrink:0, marginBottom:14, display:"block" }}>
-          <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={e=>leerArchivo(e.target.files[0])}/>
+          style={{ border:`2px dashed ${archivo?C.accent:C.cardBorder}`, borderRadius:10, padding:"24px", textAlign:"center", background:archivo?C.accentDim:C.inputBg, transition:"all 0.2s", flexShrink:0, marginBottom:14, position:"relative" }}>
           <div style={{ fontSize:32, marginBottom:8 }}>📊</div>
           {archivo ? (
             <p style={{ fontSize:14, fontWeight:700, color:C.accent, margin:0, fontFamily:"'DM Sans',sans-serif" }}>✓ {archivo.name}</p>
           ) : (
             <>
-              <p style={{ fontSize:14, fontWeight:600, color:C.textPrimary, margin:"0 0 4px", fontFamily:"'DM Sans',sans-serif" }}>Arrastra el archivo aquí o haz clic para seleccionar</p>
-              <p style={{ fontSize:12, color:C.textGhost, margin:0, fontFamily:"'DM Sans',sans-serif" }}>Formatos: .xlsx, .xls, .csv</p>
+              <p style={{ fontSize:14, fontWeight:600, color:C.textPrimary, margin:"0 0 8px", fontFamily:"'DM Sans',sans-serif" }}>Arrastra el archivo aquí o</p>
+              <label style={{ display:"inline-block", padding:"9px 20px", borderRadius:8, background:C.accent, color:"#fff", fontFamily:"'Barlow Condensed',sans-serif", fontSize:14, fontWeight:800, cursor:"pointer", letterSpacing:"0.05em", textTransform:"uppercase" }}>
+                Seleccionar archivo
+                <input type="file" accept=".xlsx,.xls,.csv" style={{ display:"none" }} onChange={e=>{ if(e.target.files[0]) leerArchivo(e.target.files[0]); }}/>
+              </label>
+              <p style={{ fontSize:12, color:C.textGhost, margin:"8px 0 0", fontFamily:"'DM Sans',sans-serif" }}>Formatos: .xlsx, .xls, .csv</p>
             </>
           )}
-        </label>
+        </div>
 
         {error && <div style={{ padding:"10px 14px", borderRadius:8, background:C.dangerBg, border:"1px solid rgba(239,68,68,0.25)", color:C.danger, fontSize:13, marginBottom:12, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>⚠️ {error}</div>}
 
