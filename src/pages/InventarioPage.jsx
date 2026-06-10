@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import * as XLSX from "xlsx";
 import { getInventario, getInventarioPorGuia, importarInventario, updateInventario, deleteInventario } from "../api";
@@ -326,7 +325,6 @@ const IcoExcel=()=><svg viewBox="0 0 24 24" width="16" height="16" fill="none" s
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function InventarioPage({ onVolver }) {
-  const { getToken } = useAuth();
   const C = useC();
 
   const inputStyle = { width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:8, border:`1.5px solid ${C.inputBorder}`, background:C.inputBg, color:C.textPrimary, fontSize:13, outline:"none", fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.15s" };
@@ -349,7 +347,6 @@ export default function InventarioPage({ onVolver }) {
   React.useEffect(() => {
     (async () => {
       try {
-        const token = getToken?.();
         const data = await getInventario();
           if (Array.isArray(data) && data.length) setGuias(data.map(g => ({ ...g, estado: ESTADOS.includes(g.estado) ? g.estado : "No entregado" })));
       } catch {}
@@ -365,18 +362,14 @@ export default function InventarioPage({ onVolver }) {
     toast(`✓ ${nuevas.length} nuevas + ${actualizadas.length} actualizadas`);
     setModalImport(false);
     try {
-      const token = getToken?.();
-      await fetch(`${API_URL}/inventario/importar`, { method:"POST", headers:{ "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) }, body:JSON.stringify(final) });
-    } catch {}
+      await importarInventario(filas); // Enviar solo las filas del Excel, no el merge local
+    } catch (e) { console.error("Error importando:", e); }
   }, [guias]);
 
   const eliminar = async (id) => {
     setGuias(p => p.filter(g => g.id !== id));
     setConfirmDel(null);
-    try {
-      const token = getToken?.();
-      await fetch(`${API_URL}/inventario/${id}`, { method:"DELETE", headers:token?{Authorization:`Bearer ${token}`}:{} });
-    } catch {}
+    try { await deleteInventario(id); } catch {}
   };
 
   // Busqueda y filtros
